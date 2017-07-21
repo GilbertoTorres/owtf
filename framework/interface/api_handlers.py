@@ -13,6 +13,16 @@ from framework.lib.general import cprint
 from framework.interface import custom_handlers
 from framework.lib.exceptions import InvalidTargetReference
 
+from datetime import datetime
+
+from tornado.gen import Return
+from tornado.process import Subprocess
+from tornado.concurrent import Future
+from tempfile import mkstemp, gettempdir
+import os
+import shlex
+
+
 
 class PluginDataHandler(custom_handlers.APIRequestHandler):
     SUPPORTED_METHODS = ['GET']
@@ -924,3 +934,98 @@ class AutoUpdaterHandler(custom_handlers.APIRequestHandler):
                 """ % (info["commit"]["message"]))
         else:
             self.write('Seems like you are running latest version. Happy Pwning!')
+
+class WriteReportDownloadHandler(custom_handlers.APIRequestHandler):
+    
+    def get(self):
+
+        strtime = datetime.now().strftime("%Y-%m-%d-%H-%M")
+        _format = self.get_argument('format', 'html')
+        download_file = self.get_argument('file')
+        self.set_header('Content-Type', 'application/octet-stream')
+        self.set_header('Content-Disposition', 'attachment; filename=' + "%s.%s" % (strtime, _format))
+        try:
+            with open(os.path.join(gettempdir(),download_file), 'rb') as f:
+                data = f.read()
+                self.write(data)
+            self.finish()
+        except exceptions.UnresolvableTargetException as e:
+            cprint(e.parameter)
+            raise tornado.web.HTTPError(409)
+
+class WriteReportExportHandler(custom_handlers.APIRequestHandler):
+    """
+    Notify on the home page if the repo is at its latest commit from upstream
+    """
+    SUPPORTED_METHODS = ['GET']
+
+    @tornado.gen.coroutine
+    def get(self):
+        res = yield self._work()
+        self.write(res)
+
+    @tornado.gen.coroutine
+    def _work(self):
+        # query_results = self.db.session.query(models.PentestReport).all()
+        # content = query_results[0].markdown_content;
+        content = 'TEST'
+
+        fd1, in_path = mkstemp()
+        input_file = open(in_path, 'w')
+        input_file.write(content)
+        input_file.close()
+        os.close(fd1)
+
+        _format = self.get_argument('format', 'html')
+        
+        fd2, out_path = mkstemp('.' + _format)
+        os.close(fd2)
+
+        if not _format in ['pdf', 'odt', 'html']:
+            raise tornado.web.HTTPError(500)
+        
+        # cwd = os.path.join(os.getcwd(),'pandoc','templates',_format)
+        cwd = os.path.join(os.getcwd())
+        
+        filter_dir = os.path.join(os.path.dirname(__file__), 'pandoc', 'filter')
+        # filters = [
+            # 'mermaid-filter',
+            # os.path.join(filter_dir, 'cvss.py'),
+            # os.path.join(filter_dir, 'gchart.py'),
+            # os.path.join(filter_dir, 'plantuml.py'),
+            # os.path.join(filter_dir, 'deflists.py'),
+            # os.path.join(filter_dir, 'graphviz.py'),
+            # os.path.join(filter_dir, 'reverseblock2.py'),
+            # os.path.join(filter_dir, 'reverseblock.py'),
+        # ]
+        filters = []
+        filter_args = list(map(lambda x: "--filter %s" % (x,),filters))
+
+        pdf_cmd = "pandoc %s " % (in_path,)
+        if _format == 'pdf':
+            template_dir = os.path.join(os.path.dirname(__file__), 'pandoc', 'templates', _format)
+            template = os.path.join(template_dir, 'latex.template')
+            pdf_cmd += "--template %s " % (template,)
+        
+        elif _format == 'odt':
+            template_dir = os.path.join(os.path.dirname(__file__), 'pandoc', 'templates', _format)
+            template = os.path.join(template_dir, 'odt.template')
+            pdf_cmd += "-t odt --template %s " % (template,)
+            reference = os.path.join(template_dir, 'reference.odt')
+            pdf_cmd += "--reference-odt %s " % (reference,)
+        
+        elif _format == 'html':
+            # template_dir = os.path.join(os.path.dirname(__file__), 'pandoc', 'templates', _format)
+            # template = os.path.join(template_dir, 'html.template')
+            # pdf_cmd += "-t html --template %s " % (template,)
+            pdf_cmd += "-t html "
+
+        pdf_cmd += " ".join(filter_args)
+        pdf_cmd += " -V documentclass=report -f markdown+yaml_metadata_block+footnotes+link_attributes+inline_notes -s -o %s --listings --smart" % (out_path,)
+
+        args = shlex.split(pdf_cmd)
+        p = Subprocess(args, cwd=cwd)
+        f = Future()
+        p.set_exit_callback(f.set_result)
+        yield f
+        raise Return({'file': os.path.basename(out_path)})

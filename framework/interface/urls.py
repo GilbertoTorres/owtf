@@ -42,6 +42,8 @@ def get_handlers():
         tornado.web.url(r'/api/configuration/?$', api_handlers.ConfigurationHandler, name='configuration_api_url'),
         tornado.web.url(r'/api/plugnhack/?$', api_handlers.PlugnhackHandler, name='plugnhack_api_url'),
         tornado.web.url(r'/api/update/?$', api_handlers.AutoUpdaterHandler, name='auto_updater_api_url'),
+        tornado.web.url(r'/api/write_report/download/?$', api_handlers.WriteReportDownloadHandler, name='write_report_download_api_url'),
+        tornado.web.url(r'/api/write_report/export/?$', api_handlers.WriteReportExportHandler, name='write_report_export_api_url'),
 
         (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': config.FrameworkConfigGet('STATICFILES_DIR')}),
         tornado.web.url(r'/output_files/(.*)', ui_handlers.FileRedirectHandler, name='file_redirect_url'),
@@ -61,6 +63,7 @@ def get_handlers():
         tornado.web.url(r'/ui/plugnhack/?', ui_handlers.PlugnHack, name='plugnhack_ui_url'),
         tornado.web.url(r'/ui/plugnhack/?(.*)', ui_handlers.PlugnHack, name='plugnhack_ui_manifest_url'),
         tornado.web.url(r'/ui/transactions/?', ui_handlers.Transactions, name='transactions_ui_url'),
+        tornado.web.url(r'/ui/write_report/?', ui_handlers.WriteReport, name='write_report_ui_url'),
         tornado.web.url(r'/ui/help/?', ui_handlers.Help, name='help_ui_url')]
     return URLS
 

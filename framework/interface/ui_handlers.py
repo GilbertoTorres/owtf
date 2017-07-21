@@ -456,6 +456,12 @@ class Transactions(custom_handlers.UIRequestHandler):
     def get(self):
         self.render("transaction_log.html")
 
+class WriteReport(custom_handlers.UIRequestHandler):
+    SUPPORTED_METHODS = ['GET']
+
+    def get(self):
+        self.render("write_report.html")
+
 class ConfigurationManager(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ('GET')
 

@@ -14,6 +14,8 @@
     <link href="{{ static_url('css/font-awesome/css/font-awesome.min.css') }}" rel="stylesheet">
     <link href="{{ static_url('css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ static_url('css/spinner.css') }}" rel="stylesheet">
+    <link href="{{ static_url('css/codemirror.css') }}" rel="stylesheet">
+    <link href="{{ static_url('css/antd.css') }}" rel="stylesheet">
     <link id="skin_css" href="{{ static_url('css/stylesheet.css') }}" rel="stylesheet"> <!-- All tweaks present in this file -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <!-- End Styles -->
@@ -147,6 +149,7 @@
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav navbar-right">
+                <li><a href="{{ reverse_url('write_report_ui_url') }}"><i class="fa fa-pencil"></i> WriteReport</a></li>
                     <li><a href="{{ reverse_url('dashboard_ui_url') }}"><i class="fa fa-tachometer"></i> Dashboard</a></li>
                     <li><a href="{{ reverse_url('targets_ui_url', None) }}" class="target-tab"><i class="fa fa-crosshairs"></i> Targets</a></li>
                     <li><a href="{{ reverse_url('workers_ui_url', None) }}"><i class="fa fa-th-large"></i> Workers</a></li>
