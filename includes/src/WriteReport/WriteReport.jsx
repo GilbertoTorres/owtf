@@ -36,7 +36,7 @@ class WriteReport extends React.Component {
           }).then((response) => response.json())
             .then((responseJson) => {
             var _format = 'html';
-            window.location = 'http://127.0.0.1:8009/api/write_report/download?file='+responseJson.file + '&format='+_format
+            window.location = '/api/write_report/download?file='+responseJson.file + '&format='+_format
           })
     };
 
