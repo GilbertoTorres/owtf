@@ -21,3 +21,4 @@ six==1.10.0
 selenium==3.4.3
 SQLAlchemy==1.1.11
 tornado==4.5.1
+hrt==0.1.0
