@@ -58,6 +58,30 @@ Features
   - **In-line notes editor** for each plugin.
 
 
+Write Report Requirements
+===
+
+`npm install --global raghur/mermaid-filter`
+
+```
+apt-get install texlive-base texlive-bibtex-extra texlive-science texlive-latex-recommended texlive-latex-extra texlive-latex-base texlive-fonts-recommended texlive-fonts-extra 
+```
+
+`apt-get install graphviz libgraphviz-dev`
+`pip install pygraphviz`
+`pip install -U pantable`
+
+`npm install phantomjs`
+
+To customize templates copy and modify default templates like:
+
+`pandoc -D html > ~/.pandoc/templates/default.html` then edit it. 
+
+To add custom packages for styling your latex report, add them to:
+
+`~/texmf/tex/latex/commonstuff`
+
+
 Requirements
 ===
 

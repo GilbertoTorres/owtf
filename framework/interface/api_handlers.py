@@ -875,18 +875,29 @@ class WriteReportExportHandler(custom_handlers.APIRequestHandler):
     """
     Notify on the home page if the repo is at its latest commit from upstream
     """
-    SUPPORTED_METHODS = ['GET']
+    SUPPORTED_METHODS = ['GET', 'POST']
 
     @tornado.gen.coroutine
     def get(self):
         res = yield self._work()
         self.write(res)
+        
+    @tornado.gen.coroutine
+    def post(self):
+        
+        data = tornado.escape.json_decode(self.request.body)
+        b64 = data['content']
+        if not b64:
+            b64 = "empty"
+        res = yield self._work(b64)
+        self.write(res)
 
     @tornado.gen.coroutine
-    def _work(self):
+    def _work(self, content=None):
         # query_results = self.db.session.query(models.PentestReport).all()
         # content = query_results[0].markdown_content;
-        content = 'TEST'
+        if not content:
+            content = "TEST"
 
         fd1, in_path = mkstemp()
         input_file = open(in_path, 'w')
@@ -905,38 +916,40 @@ class WriteReportExportHandler(custom_handlers.APIRequestHandler):
         # cwd = os.path.join(os.getcwd(),'pandoc','templates',_format)
         cwd = os.path.join(os.getcwd())
         
-        filter_dir = os.path.join(os.path.dirname(__file__), 'pandoc', 'filter')
-        # filters = [
-            # 'mermaid-filter',
-            # os.path.join(filter_dir, 'cvss.py'),
-            # os.path.join(filter_dir, 'gchart.py'),
-            # os.path.join(filter_dir, 'plantuml.py'),
-            # os.path.join(filter_dir, 'deflists.py'),
-            # os.path.join(filter_dir, 'graphviz.py'),
-            # os.path.join(filter_dir, 'reverseblock2.py'),
-            # os.path.join(filter_dir, 'reverseblock.py'),
-        # ]
-        filters = []
+        filter_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'pandoc', 'filter')
+        filters = [
+            os.path.join(filter_dir, 'poutput.py'),
+            os.path.join(filter_dir, 'cvss.py'),
+            os.path.join(filter_dir, 'gchart.py'),
+            os.path.join(filter_dir, 'plantuml.py'),
+            os.path.join(filter_dir, 'deflists.py'),
+            os.path.join(filter_dir, 'graphviz.py'),
+            os.path.join(filter_dir, 'reverseblock2.py'),
+            os.path.join(filter_dir, 'reverseblock.py'),
+            'pantable',
+        ]
         filter_args = list(map(lambda x: "--filter %s" % (x,),filters))
 
         pdf_cmd = "pandoc %s " % (in_path,)
         if _format == 'pdf':
-            template_dir = os.path.join(os.path.dirname(__file__), 'pandoc', 'templates', _format)
-            template = os.path.join(template_dir, 'latex.template')
-            pdf_cmd += "--template %s " % (template,)
-        
+            #template_dir = os.path.join(os.path.dirname(__file__), 'pandoc', 'templates', _format)
+            #template = os.path.join(template_dir, 'latex.template')
+            #pdf_cmd += "--template %s " % (template,)
+            pdf_cmd += "-t latex "
+
         elif _format == 'odt':
-            template_dir = os.path.join(os.path.dirname(__file__), 'pandoc', 'templates', _format)
-            template = os.path.join(template_dir, 'odt.template')
-            pdf_cmd += "-t odt --template %s " % (template,)
-            reference = os.path.join(template_dir, 'reference.odt')
-            pdf_cmd += "--reference-odt %s " % (reference,)
+            #template_dir = os.path.join(os.path.dirname(__file__), 'pandoc', 'templates', _format)
+            #template = os.path.join(template_dir, 'odt.template')
+            #pdf_cmd += "-t odt --template %s " % (template,)
+            #reference = os.path.join(template_dir, 'reference.odt')
+            #pdf_cmd += "--reference-odt %s " % (reference,)
+            pdf_cmd += "-t odt "
         
         elif _format == 'html':
             # template_dir = os.path.join(os.path.dirname(__file__), 'pandoc', 'templates', _format)
             # template = os.path.join(template_dir, 'html.template')
-            # pdf_cmd += "-t html --template %s " % (template,)
-            pdf_cmd += "-t html "
+            # pdf_cmd += " --template %s " % (template,)
+            pdf_cmd += "-t html --toc --self-contained "
 
         pdf_cmd += " ".join(filter_args)
         pdf_cmd += " -V documentclass=report -f markdown+yaml_metadata_block+footnotes+link_attributes+inline_notes -s -o %s --listings --smart" % (out_path,)

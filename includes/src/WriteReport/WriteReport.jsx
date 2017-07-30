@@ -26,17 +26,19 @@ class WriteReport extends React.Component {
             });
     };
 
-    download() {
-        fetch(`/api/write_report/export/`, {
-            method: 'GET',
+    download(content, format) {
+        fetch(`/api/write_report/export/?format=`+format, {
+            method: 'POST',
             headers: {
               'Accept': 'application/json',
               'Content-Type': 'application/json',
             },
+            body: JSON.stringify({
+                content: content
+            })
           }).then((response) => response.json())
             .then((responseJson) => {
-            var _format = 'html';
-            window.location = '/api/write_report/download?file='+responseJson.file + '&format='+_format
+            window.location = '/api/write_report/download?file='+responseJson.file + '&format='+format
           })
     };
 
@@ -51,7 +53,9 @@ class WriteReport extends React.Component {
 
         return (
             <div>
-            <Button type="primary" icon="download" size={'default'} onClick={this.download.bind(this)}>Download</Button>
+            <Button type="primary" icon="download" size={'default'} onClick={this.download.bind(this, this.state.code, 'html')}>Download Html</Button>
+            <Button type="primary" icon="download" size={'default'} onClick={this.download.bind(this, this.state.code, 'pdf')}>Download Pdf</Button>
+            <Button type="primary" icon="download" size={'default'} onClick={this.download.bind(this, this.state.code, 'odt')}>Download Odt</Button>
             <Button type='primary' icon="save">Save</Button>
             <CodeMirror value={this.state.code} onChange={this.updateCode.bind(this)} options={options} />
             </div>
