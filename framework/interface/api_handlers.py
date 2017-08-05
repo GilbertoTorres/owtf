@@ -854,6 +854,16 @@ class ErrorDataHandler(custom_handlers.APIRequestHandler):
             raise tornado.web.HTTPError(400)
 
 class WriteReportDownloadHandler(custom_handlers.APIRequestHandler):
+    """
+    Class handling APIs related to *write report* funtionality.
+    In OWTF, report writing funtionality is implemented using markdown 
+    for the pentester to write the report and pandoc with multiple custom
+    filters to add new syntax and export in several formats:
+        - odt
+        - pdf (using latex or wkhtmltopdf)
+        - html
+        - xml (docbook. Maybe OWASP PenText in the coming future)
+    """
     
     def get(self):
 
