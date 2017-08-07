@@ -21,7 +21,7 @@ def gchart(key, value, format, _):
         if "gchart" in classes:
             caption, typef, keyvals = get_caption(keyvals)
 
-            tmp_dir = os.path.join(os.getcwd(), '..', '..', '..', 'tmp')
+            tmp_dir = os.path.join('/', 'tmp')
             sys.stderr.write('Created tmp_dir ' + tmp_dir + '\n')
             sys.stderr.write('gchart keyvals\'' + json.dumps(keyvals) + '\'\n')
 
@@ -43,6 +43,7 @@ def gchart(key, value, format, _):
 
                 phantomjs_bin = "phantomjs"
                 gchart_script = "../scripts/gchart.js"
+                os.environ["QT_QPA_PLATFORM"] = "offscreen"
                 call([phantomjs_bin, gchart_script, _type, dest, txt])
                 sys.stderr.write('Created image ' + dest + '\n')
 
