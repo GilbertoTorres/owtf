@@ -3947,6 +3947,16 @@ react-codemirror@^1.0.0:
     lodash.isequal "^4.5.0"
     prop-types "^15.5.4"
 
+"react-codemirror@git://github.com/skidding/react-codemirror.git#106-fix-update":
+  version "1.0.0"
+  resolved "git://github.com/skidding/react-codemirror.git#bcbb50bf0e1042397a9c8eb39b2c515e4c040b57"
+  dependencies:
+    classnames "^2.2.5"
+    codemirror "^5.18.2"
+    create-react-class "^15.5.1"
+    lodash.isequal "^4.5.0"
+    prop-types "^15.5.4"
+
 react-copy-to-clipboard@^4.2.3:
   version "4.3.1"
   resolved "https://registry.yarnpkg.com/react-copy-to-clipboard/-/react-copy-to-clipboard-4.3.1.tgz#aa429ce6029077c987e2bc4af7eec9a09ba5075b"

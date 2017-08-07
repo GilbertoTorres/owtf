@@ -372,6 +372,23 @@ class WorkerManagerInterface(AbstractInterface):
     def manage_workers(self):
         pass
 
+class WReportManagerInterface(AbstractInterface):
+
+    @abstractmethod
+    def init(self):
+        pass
+
+    @abstractmethod
+    def load(self, id):
+        pass
+
+    @abstractmethod
+    def save(self, id, title, content):
+        pass
+
+
+
+
 
 class ZapAPIInterface(AbstractInterface):
 

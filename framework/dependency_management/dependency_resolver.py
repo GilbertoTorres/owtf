@@ -19,6 +19,7 @@ class ServiceLocator:
         "mapping_db",
         "plugin_handler",
         "plugin_output",
+        "wreport_manager",
         "requester",
         "resource",
         "shell",

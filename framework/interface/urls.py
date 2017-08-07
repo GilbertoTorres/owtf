@@ -40,6 +40,7 @@ def get_handlers():
         tornado.web.url(r'/api/worklist/?([0-9]+)?/?(pause|resume|delete)?/?$', api_handlers.WorklistHandler, name='worklist_api_url'),
         tornado.web.url(r'/api/worklist/search/?$', api_handlers.WorklistSearchHandler, name='worklist_search_api_url'),
         tornado.web.url(r'/api/configuration/?$', api_handlers.ConfigurationHandler, name='configuration_api_url'),
+        tornado.web.url(r'/api/write_report/?([0-9]+)?/?$', api_handlers.WriteReportHandler, name='write_report_api_url'),
         tornado.web.url(r'/api/write_report/download/?$', api_handlers.WriteReportDownloadHandler, name='write_report_download_api_url'),
         tornado.web.url(r'/api/write_report/export/?$', api_handlers.WriteReportExportHandler, name='write_report_export_api_url'),
 

@@ -10,6 +10,7 @@ from framework.db.error_manager import ErrorDB
 from framework.db.mapping_manager import MappingDB
 from framework.db.plugin_manager import PluginDB
 from framework.db.poutput_manager import POutputDB
+from framework.db.wreport_manager import WReportManager
 from framework.db.resource_manager import ResourceDB
 from framework.db.session_manager import OWTFSessionDB
 from framework.db.target_manager import TargetDB
@@ -67,6 +68,7 @@ class ComponentInitialiser():
         ErrorDB()
         MappingDB()
         PluginDB()
+        WReportManager()
         Zest()
         URLManager()
         TransactionManager()

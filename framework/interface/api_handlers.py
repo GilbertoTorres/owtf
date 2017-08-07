@@ -853,6 +853,26 @@ class ErrorDataHandler(custom_handlers.APIRequestHandler):
         except exceptions.InvalidErrorReference:
             raise tornado.web.HTTPError(400)
 
+class WriteReportHandler(custom_handlers.APIRequestHandler):
+    SUPPORTED_METHODS = ['GET', 'POST']
+
+    def get(self, wreport_id=None):
+        wreport = self.get_component("wreport_manager")
+        wreport = wreport.load(wreport_id)
+        self.write(
+            {
+                "title": wreport.title,
+                "content": wreport.content
+            })
+
+    def post(self, wreport_id=None):
+        data = tornado.escape.json_decode(self.request.body)
+        content = data['content']
+        wreport = self.get_component("wreport_manager")
+        title = datetime.now().strftime("%Y-%m-%d-%H-%M")
+        wreport.save(wreport_id, title, content)
+        
+
 class WriteReportDownloadHandler(custom_handlers.APIRequestHandler):
     """
     Class handling APIs related to *write report* funtionality.

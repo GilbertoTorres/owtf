@@ -19,6 +19,10 @@ class WriteReport extends React.Component {
         };
     }
 
+    componentDidMount() {
+        this.init();
+    }
+
     updateCode(newCode) {
         this.setState(
             { 
@@ -42,6 +46,36 @@ class WriteReport extends React.Component {
           })
     };
 
+    save(content) {
+        fetch(`/api/write_report/1`, {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                content: content
+            })
+          }).then((response) => response.json())
+    };
+
+    init() {
+        fetch(`/api/write_report/1`, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            }
+        }).then((response) => response.json())
+            .then((responseJson) => {
+                console.log("FOOO")
+                this.setState(
+                { 
+                    code: responseJson.content 
+                });
+            })
+    };
+
 
 
     render() {
@@ -56,7 +90,7 @@ class WriteReport extends React.Component {
             <Button type="primary" icon="download" size={'default'} onClick={this.download.bind(this, this.state.code, 'html')}>Download Html</Button>
             <Button type="primary" icon="download" size={'default'} onClick={this.download.bind(this, this.state.code, 'pdf')}>Download Pdf</Button>
             <Button type="primary" icon="download" size={'default'} onClick={this.download.bind(this, this.state.code, 'odt')}>Download Odt</Button>
-            <Button type='primary' icon="save">Save</Button>
+            <Button type="primary" icon="save" onClick={this.save.bind(this, this.state.code)}>Save</Button>
             <CodeMirror value={this.state.code} onChange={this.updateCode.bind(this)} options={options} />
             </div>
         );
