@@ -929,7 +929,7 @@ class WriteReportExportHandler(custom_handlers.APIRequestHandler):
         if not content:
             content = "TEST"
 
-        fd1, in_path = mkstemp()
+        fd1, in_path = mkstemp('.md')
         input_file = open(in_path, 'w')
         input_file.write(content)
         input_file.close()
@@ -960,7 +960,7 @@ class WriteReportExportHandler(custom_handlers.APIRequestHandler):
         ]
         filter_args = list(map(lambda x: "--filter %s" % (x,),filters))
 
-        pdf_cmd = "pandoc %s " % (in_path,)
+        pdf_cmd = "pandoc "
         if _format == 'pdf':
             #template_dir = os.path.join(os.path.dirname(__file__), 'pandoc', 'templates', _format)
             #template = os.path.join(template_dir, 'latex.template')
@@ -983,8 +983,10 @@ class WriteReportExportHandler(custom_handlers.APIRequestHandler):
 
         pdf_cmd += " ".join(filter_args)
         pdf_cmd += " -V documentclass=report -f markdown+yaml_metadata_block+footnotes+link_attributes+inline_notes -s -o %s --listings --smart" % (out_path,)
+        script_sh = os.path.join(os.path.dirname(__file__), '..', '..', 'scripts', 'pandoc_wrapper.sh')
+        wrapped_cmd = "%s %s %s '%s'" % (script_sh, 'pandoc', in_path, pdf_cmd)
 
-        args = shlex.split(pdf_cmd)
+        args = shlex.split(wrapped_cmd)
         p = Subprocess(args, cwd=cwd)
         f = Future()
         p.set_exit_callback(f.set_result)

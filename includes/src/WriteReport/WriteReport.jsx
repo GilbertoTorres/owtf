@@ -1,5 +1,9 @@
 import React from 'react';
 import { Button } from 'antd';
+import 'codemirror/addon/dialog/dialog';
+import 'codemirror/addon/search/search';
+import 'codemirror/addon/search/searchcursor';
+import 'codemirror/addon/search/jump-to-line';
 import CodeMirror from 'react-codemirror';
 import 'codemirror/mode/markdown/markdown';
 
@@ -75,8 +79,6 @@ class WriteReport extends React.Component {
                 });
             })
     };
-
-
 
     render() {
         var options = {
