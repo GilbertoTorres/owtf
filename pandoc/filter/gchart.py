@@ -43,7 +43,7 @@ def gchart(key, value, format, _):
 
                 phantomjs_bin = "phantomjs"
                 gchart_script = "../scripts/gchart.js"
-                os.environ["QT_QPA_PLATFORM"] = "offscreen"
+                # os.environ["QT_QPA_PLATFORM"] = "offscreen"
                 call([phantomjs_bin, gchart_script, _type, dest, txt])
                 sys.stderr.write('Created image ' + dest + '\n')
 
