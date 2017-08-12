@@ -916,10 +916,10 @@ class WriteReportExportHandler(custom_handlers.APIRequestHandler):
     def post(self):
         
         data = tornado.escape.json_decode(self.request.body)
-        b64 = data['content']
-        if not b64:
-            b64 = "empty"
-        res = yield self._work(b64)
+        content = data['content'].encode('utf-8').strip()
+        if not content:
+            content = "empty"
+        res = yield self._work(content)
         self.write(res)
 
     @tornado.gen.coroutine

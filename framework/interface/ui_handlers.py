@@ -255,8 +255,10 @@ class Transactions(custom_handlers.UIRequestHandler):
 class WriteReport(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
 
-    def get(self):
-        self.render("write_report.html")
+    def get(self, report_id=None):
+        # if not report_id:
+        #     raise tornado.web.HTTPError(405)
+        self.render("write_report.html", report_id=report_id)
 
 class ConfigurationManager(custom_handlers.UIRequestHandler):
     SUPPORTED_METHODS = ('GET')

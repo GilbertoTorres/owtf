@@ -3,5 +3,9 @@
 {% block title %}Transaction Log{% end %}
 
 {% block content %}
-<div id="write_report"></div>
+	{% if report_id %}
+	<div id="write_report" data-report-id="{{ report_id }}"></div>
+	{% else %}
+	<div id="write_report"></div>
+	{% end %}
 {% end %}

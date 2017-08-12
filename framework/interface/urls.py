@@ -60,7 +60,7 @@ def get_handlers():
         tornado.web.url(r'/ui/worklist/?', ui_handlers.WorklistManager, name='worklist_ui_url'),
         tornado.web.url(r'/ui/configuration/?$', ui_handlers.ConfigurationManager, name='configuration_ui_url'),
         tornado.web.url(r'/ui/transactions/?', ui_handlers.Transactions, name='transactions_ui_url'),
-        tornado.web.url(r'/ui/write_report/?', ui_handlers.WriteReport, name='write_report_ui_url'),
+        tornado.web.url(r'/ui/write_report/?([0-9]+)?/?$', ui_handlers.WriteReport, name='write_report_ui_url'),
         tornado.web.url(r'/ui/help/?', ui_handlers.Help, name='help_ui_url')]
     return URLS
 

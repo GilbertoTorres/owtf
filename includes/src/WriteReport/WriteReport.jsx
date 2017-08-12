@@ -62,8 +62,8 @@ class WriteReport extends React.Component {
           })
     };
 
-    save(content) {
-        fetch(`/api/write_report/1`, {
+    save(reportId, content) {
+        fetch(`/api/write_report/${reportId}`, {
             method: 'POST',
             headers: {
               'Accept': 'application/json',
@@ -76,7 +76,15 @@ class WriteReport extends React.Component {
     };
 
     init() {
-        fetch(`/api/write_report/1`, {
+        var reportId = document.getElementById('write_report').getAttribute('data-report-id');
+        if (!reportId) {
+            reportId = 1;
+        }
+        this.setState(
+        { 
+            reportId: reportId
+        });
+        fetch(`/api/write_report/${reportId}`, {
             method: 'GET',
             headers: {
               'Accept': 'application/json',
@@ -109,7 +117,7 @@ class WriteReport extends React.Component {
                   <Radio value="odt">odt</Radio>
                 </RadioGroup>
                 <br/>
-                <Button type="primary" icon="save" onClick={this.save.bind(this, this.state.code)}>Save</Button>
+                <Button type="primary" icon="save" onClick={this.save.bind(this, this.state.reportId, this.state.code)}>Save</Button>
                 <CodeMirror value={this.state.code} onChange={this.updateCode.bind(this)} options={options} />
             </div>
         );
