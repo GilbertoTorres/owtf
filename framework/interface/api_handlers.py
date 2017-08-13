@@ -21,6 +21,8 @@ from tornado.concurrent import Future
 from tempfile import mkstemp, gettempdir
 import os
 import shlex
+import random
+import string
 
 
 
@@ -853,6 +855,22 @@ class ErrorDataHandler(custom_handlers.APIRequestHandler):
         except exceptions.InvalidErrorReference:
             raise tornado.web.HTTPError(400)
 
+class WriteReportUploadAttachmentHandler(custom_handlers.APIRequestHandler):
+    SUPPORTED_METHODS = ['POST']
+
+    def post(self, wreport_id=None):
+        # data = tornado.escape.json_decode(self.request.body)
+        file = self.request.files['file'][0]
+        original_fname = file['filename']
+        extension = os.path.splitext(original_fname)[1]
+        fname = ''.join(random.choice(string.ascii_lowercase + string.digits) for x in range(6))
+        final_filename= fname+extension
+        rootDir = os.path.join(self.get_component("config").FrameworkConfigGet("OUTPUT_PATH"), 'targets','write_report','uploads')
+        output_file_name =  rootDir + "/" + final_filename
+        output_file = open(output_file_name, 'w')
+        output_file.write(file['body'])
+        self.write({"filename": "http://127.0.0.1:8010/write_report/uploads/" + final_filename})
+        
 class WriteReportHandler(custom_handlers.APIRequestHandler):
     SUPPORTED_METHODS = ['GET', 'POST']
 

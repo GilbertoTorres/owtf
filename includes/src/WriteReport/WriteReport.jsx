@@ -2,6 +2,10 @@ import React from 'react';
 import { Radio, Button } from 'antd';
 const RadioButton = Radio.Button;
 const RadioGroup = Radio.Group;
+
+import 'inline-attachment/src/inline-attachment'
+import 'inline-attachment/src/codemirror-4.inline-attachment'
+import 'codemirror/addon/dialog/dialog';
 import 'codemirror/addon/dialog/dialog';
 import 'codemirror/addon/search/search';
 import 'codemirror/addon/search/searchcursor';
@@ -72,7 +76,7 @@ class WriteReport extends React.Component {
             body: JSON.stringify({
                 content: content
             })
-          }).then((response) => response.json())
+          })
     };
 
     init() {
@@ -80,6 +84,13 @@ class WriteReport extends React.Component {
         if (!reportId) {
             reportId = 1;
         }
+        
+        inlineAttachment.editors.codemirror4.attach(
+            this.myCodeMirror.getCodeMirror(),
+            {
+                uploadUrl: `/api/write_report/${reportId}/upload-attachment`
+            }
+        );
         this.setState(
         { 
             reportId: reportId
@@ -118,7 +129,7 @@ class WriteReport extends React.Component {
                 </RadioGroup>
                 <br/>
                 <Button type="primary" icon="save" onClick={this.save.bind(this, this.state.reportId, this.state.code)}>Save</Button>
-                <CodeMirror value={this.state.code} onChange={this.updateCode.bind(this)} options={options} />
+                <CodeMirror ref={(ref) => this.myCodeMirror = ref} value={this.state.code} onChange={this.updateCode.bind(this)} options={options} />
             </div>
         );
     }
