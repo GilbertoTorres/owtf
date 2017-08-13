@@ -919,6 +919,24 @@ class WriteReportDownloadHandler(custom_handlers.APIRequestHandler):
             cprint(e.parameter)
             raise tornado.web.HTTPError(409)
 
+class WriteReportListHandler(custom_handlers.APIRequestHandler):
+    """
+    Notify on the home page if the repo is at its latest commit from upstream
+    """
+    SUPPORTED_METHODS = ['GET']
+
+    def get(self):
+        wreport = self.get_component("wreport_manager")
+        reports = wreport.list()
+        
+        results = list()
+        for x in reports:
+            result = dict()
+            result['id'] = x.id
+            results.append(result)
+
+        self.write(results)
+
 class WriteReportExportHandler(custom_handlers.APIRequestHandler):
     """
     Notify on the home page if the repo is at its latest commit from upstream

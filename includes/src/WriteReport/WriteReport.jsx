@@ -1,7 +1,14 @@
 import React from 'react';
-import { Radio, Button } from 'antd';
+import _ from 'lodash'
+import { Col, Row, Card, Radio, Button } from 'antd';
 const RadioButton = Radio.Button;
 const RadioGroup = Radio.Group;
+
+import {
+  BrowserRouter as Router,
+  Route,
+  Link
+} from 'react-router-dom'
 
 import 'inline-attachment/src/inline-attachment'
 import 'inline-attachment/src/codemirror-4.inline-attachment'
@@ -12,6 +19,61 @@ import 'codemirror/addon/search/searchcursor';
 import 'codemirror/addon/search/jump-to-line';
 import CodeMirror from 'react-codemirror';
 import 'codemirror/mode/markdown/markdown';
+
+
+class Index extends React.Component {
+
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            reports: []
+        };
+    }
+
+    componentDidMount() {
+        fetch(`/api/write_reports/`, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+            }
+        }).then((response) => response.json())
+          .then((responseJson) => {
+            this.setState(
+            { 
+                reports: responseJson
+            });
+        })
+    }
+
+    renderRow(row) {
+        return <Row>{row.map(this.renderItem.bind(this))}</Row>;
+    }
+
+    renderItem(item) {
+        return (
+            <Col span={8}>
+                  <Card title={'Report ' + item.id } extra={<Link to={'/ui/write_report/' + item.id}>LinkNow</Link>} style={{ width: 300 }}>
+                    <p>Card content</p>
+                    <p>Card content</p>
+                    <p>Card content</p>
+                  </Card>
+              </Col>
+              )
+    }
+
+    render() {
+
+        var groups = _.chunk(this.state.reports, 3)
+        return (
+        <div>
+            {groups.map(this.renderRow.bind(this))}
+        </div>
+        );
+    }
+}
+
 
 class WriteReport extends React.Component {
 
@@ -36,6 +98,26 @@ class WriteReport extends React.Component {
         this.init();
     }
 
+    componentWillReceiveProps(nextProps) {
+        if(this.props.match.params.id != nextProps.match.params.id) {
+            fetch(`/api/write_report/${nextProps.match.params.id}`, {
+                method: 'GET',
+                headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json'
+                }
+            }).then((response) => response.json())
+            .then((responseJson) => {
+                this.setState(
+                { 
+                    code: responseJson.content 
+                });
+            })
+        } else {
+            console.log("Same ids ...");
+        }
+    }
+
     updateCode(newCode) {
         this.setState(
             { 
@@ -44,7 +126,6 @@ class WriteReport extends React.Component {
     };
 
     onFormatChange(e) {
-        console.log('radio checked', e.target.value);
         this.setState({
           selectedFormat: e.target.value,
         });
@@ -102,13 +183,12 @@ class WriteReport extends React.Component {
               'Content-Type': 'application/json'
             }
         }).then((response) => response.json())
-            .then((responseJson) => {
-                console.log("FOOO")
-                this.setState(
-                { 
-                    code: responseJson.content 
-                });
-            })
+        .then((responseJson) => {
+            this.setState(
+            { 
+                code: responseJson.content 
+            });
+        })
     };
 
     render() {
@@ -135,4 +215,15 @@ class WriteReport extends React.Component {
     }
 }
 
-export default WriteReport;
+const WriteReportRouter = () => (
+  <Router>
+    <div>
+      <Link to="/ui/write_report/">Index</Link>
+      <Link to="/ui/write_report/new">New</Link>
+      <Route exact path="/ui/write_report/" component={Index}/>
+      <Route path="/ui/write_report/:id" component={WriteReport}/>
+    </div>
+  </Router>
+)
+
+export default WriteReportRouter;

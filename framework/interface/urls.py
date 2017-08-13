@@ -40,10 +40,11 @@ def get_handlers():
         tornado.web.url(r'/api/worklist/?([0-9]+)?/?(pause|resume|delete)?/?$', api_handlers.WorklistHandler, name='worklist_api_url'),
         tornado.web.url(r'/api/worklist/search/?$', api_handlers.WorklistSearchHandler, name='worklist_search_api_url'),
         tornado.web.url(r'/api/configuration/?$', api_handlers.ConfigurationHandler, name='configuration_api_url'),
-        tornado.web.url(r'/api/write_report/([0-9]+)/upload-attachment/?$', api_handlers.WriteReportUploadAttachmentHandler, name='write_report_upload_attachment_api_url'),
-        tornado.web.url(r'/api/write_report/?([0-9]+)?/?$', api_handlers.WriteReportHandler, name='write_report_api_url'),
         tornado.web.url(r'/api/write_report/download/?$', api_handlers.WriteReportDownloadHandler, name='write_report_download_api_url'),
         tornado.web.url(r'/api/write_report/export/?$', api_handlers.WriteReportExportHandler, name='write_report_export_api_url'),
+        tornado.web.url(r'/api/write_reports/?$', api_handlers.WriteReportListHandler, name='write_report_list_api_url'),
+        tornado.web.url(r'/api/write_report/([0-9]+)/upload-attachment/?$', api_handlers.WriteReportUploadAttachmentHandler, name='write_report_upload_attachment_api_url'),
+        tornado.web.url(r'/api/write_report/?([0-9]+)?/?$', api_handlers.WriteReportHandler, name='write_report_api_url'),
 
         (r'/write_report/uploads/(.*)', tornado.web.StaticFileHandler, {'path': config.FrameworkConfigGet('WRITE_REPORT_UPLOADS_DIR')}),
         (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': config.FrameworkConfigGet('STATICFILES_DIR')}),
@@ -62,7 +63,7 @@ def get_handlers():
         tornado.web.url(r'/ui/worklist/?', ui_handlers.WorklistManager, name='worklist_ui_url'),
         tornado.web.url(r'/ui/configuration/?$', ui_handlers.ConfigurationManager, name='configuration_ui_url'),
         tornado.web.url(r'/ui/transactions/?', ui_handlers.Transactions, name='transactions_ui_url'),
-        tornado.web.url(r'/ui/write_report/?([0-9]+)?/?$', ui_handlers.WriteReport, name='write_report_ui_url'),
+        tornado.web.url(r'/ui/write_report/(.*)', ui_handlers.WriteReport, name='write_report_ui_url'),
         tornado.web.url(r'/ui/help/?', ui_handlers.Help, name='help_ui_url')]
     return URLS
 

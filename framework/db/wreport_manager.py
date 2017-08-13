@@ -33,6 +33,10 @@ class WReportManager(BaseComponent, WReportManagerInterface):
 
 """
 
+    def list(self):
+        wreport = self.db.session.query(models.WriteReport).all()
+        return wreport
+
     def load(self, id):
         wreport = self.db.session.query(models.WriteReport).get(id)
         return wreport
