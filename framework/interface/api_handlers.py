@@ -24,6 +24,8 @@ import shlex
 import random
 import string
 
+from framework.db.schemas import wreport_schema
+
 
 
 class PluginDataHandler(custom_handlers.APIRequestHandler):
@@ -869,26 +871,7 @@ class WriteReportUploadAttachmentHandler(custom_handlers.APIRequestHandler):
         output_file_name =  rootDir + "/" + final_filename
         output_file = open(output_file_name, 'w')
         output_file.write(file['body'])
-        self.write({"filename": "http://127.0.0.1:8010/write_report/uploads/" + final_filename})
-        
-class WriteReportHandler(custom_handlers.APIRequestHandler):
-    SUPPORTED_METHODS = ['GET', 'POST']
-
-    def get(self, wreport_id=None):
-        wreport = self.get_component("wreport_manager")
-        wreport = wreport.load(wreport_id)
-        self.write(
-            {
-                "title": wreport.title,
-                "content": wreport.content
-            })
-
-    def post(self, wreport_id=None):
-        data = tornado.escape.json_decode(self.request.body)
-        content = data['content']
-        wreport = self.get_component("wreport_manager")
-        title = datetime.now().strftime("%Y-%m-%d-%H-%M")
-        wreport.save(wreport_id, title, content)
+        self.write({"filename": "http://127.0.0.1:8010/write_reports/uploads/" + final_filename})
         
 
 class WriteReportDownloadHandler(custom_handlers.APIRequestHandler):
@@ -903,6 +886,8 @@ class WriteReportDownloadHandler(custom_handlers.APIRequestHandler):
         - xml (docbook. Maybe OWASP PenText in the coming future)
     """
     
+    SUPPORTED_METHODS = ['GET']
+
     def get(self):
 
         strtime = datetime.now().strftime("%Y-%m-%d-%H-%M")
@@ -919,23 +904,61 @@ class WriteReportDownloadHandler(custom_handlers.APIRequestHandler):
             cprint(e.parameter)
             raise tornado.web.HTTPError(409)
 
-class WriteReportListHandler(custom_handlers.APIRequestHandler):
+
+class WriteReportRestHandler(custom_handlers.APIRequestHandler):
     """
     Notify on the home page if the repo is at its latest commit from upstream
     """
-    SUPPORTED_METHODS = ['GET']
+    SUPPORTED_METHODS = ['GET', 'POST', 'PUT', 'DELETE']
 
-    def get(self):
-        wreport = self.get_component("wreport_manager")
-        reports = wreport.list()
+    def get(self, report_id=None):
         
-        results = list()
-        for x in reports:
-            result = dict()
-            result['id'] = x.id
-            results.append(result)
+        wreport_manager = self.get_component("wreport_manager")
+        if report_id is None:
 
-        self.write(results)
+            reports = wreport_manager.list()
+            results = list()
+            for obj in reports:
+                result = wreport_schema.dump(obj)
+                results.append(result.data)
+            self.write(results)
+        else:
+            obj = wreport_manager.load(report_id)
+            result = wreport_schema.dump(obj)
+            self.write(result.data)
+
+
+    def post(self, wreport_id=None):
+        request_data = tornado.escape.json_decode(self.request.body)
+        wreport_manager = self.get_component("wreport_manager")
+
+        data = dict()
+        data['title'] = request_data.get('title', None)
+        data['content'] = request_data.get('content', None)
+        if not data['title']:
+            data['title'] = 'Untitled Report'
+        obj = wreport_manager.create(data)
+        result = wreport_schema.dump(obj)
+        self.write(result.data)
+
+    def put(self, wreport_id):
+        request_data = tornado.escape.json_decode(self.request.body)
+        wreport_manager = self.get_component("wreport_manager")
+
+        data = dict()
+        data['id'] = wreport_id
+        data['title'] = request_data.get('title', None)
+        data['content'] = request_data.get('content', None)
+        if not data['title']:
+            data['title'] = 'Untitled Report'
+        obj = wreport_manager.save(data)
+        result = wreport_schema.dump(obj)
+        self.write(result.data)
+
+    def delete(self, wreport_id):
+        wreport_manager = self.get_component("wreport_manager")
+        wreport_manager.delete(wreport_id)
+
 
 class WriteReportExportHandler(custom_handlers.APIRequestHandler):
     """
@@ -960,8 +983,6 @@ class WriteReportExportHandler(custom_handlers.APIRequestHandler):
 
     @tornado.gen.coroutine
     def _work(self, content=None):
-        # query_results = self.db.session.query(models.PentestReport).all()
-        # content = query_results[0].markdown_content;
         if not content:
             content = "TEST"
 

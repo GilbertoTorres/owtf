@@ -40,13 +40,12 @@ def get_handlers():
         tornado.web.url(r'/api/worklist/?([0-9]+)?/?(pause|resume|delete)?/?$', api_handlers.WorklistHandler, name='worklist_api_url'),
         tornado.web.url(r'/api/worklist/search/?$', api_handlers.WorklistSearchHandler, name='worklist_search_api_url'),
         tornado.web.url(r'/api/configuration/?$', api_handlers.ConfigurationHandler, name='configuration_api_url'),
-        tornado.web.url(r'/api/write_report/download/?$', api_handlers.WriteReportDownloadHandler, name='write_report_download_api_url'),
-        tornado.web.url(r'/api/write_report/export/?$', api_handlers.WriteReportExportHandler, name='write_report_export_api_url'),
-        tornado.web.url(r'/api/write_reports/?$', api_handlers.WriteReportListHandler, name='write_report_list_api_url'),
-        tornado.web.url(r'/api/write_report/([0-9]+)/upload-attachment/?$', api_handlers.WriteReportUploadAttachmentHandler, name='write_report_upload_attachment_api_url'),
-        tornado.web.url(r'/api/write_report/?([0-9]+)?/?$', api_handlers.WriteReportHandler, name='write_report_api_url'),
+        tornado.web.url(r'/api/write_reports/download/?$', api_handlers.WriteReportDownloadHandler, name='write_reports_download_api_url'),
+        tornado.web.url(r'/api/write_reports/export/?$', api_handlers.WriteReportExportHandler, name='write_reports_export_api_url'),
+        tornado.web.url(r'/api/write_reports/?([0-9]+)?/?$', api_handlers.WriteReportRestHandler, name='write_reports_list_api_url'),
+        tornado.web.url(r'/api/write_reports/([0-9]+)/upload-attachment/?$', api_handlers.WriteReportUploadAttachmentHandler, name='write_reports_upload_attachment_api_url'),
 
-        (r'/write_report/uploads/(.*)', tornado.web.StaticFileHandler, {'path': config.FrameworkConfigGet('WRITE_REPORT_UPLOADS_DIR')}),
+        (r'/write_reports/uploads/(.*)', tornado.web.StaticFileHandler, {'path': config.FrameworkConfigGet('WRITE_REPORT_UPLOADS_DIR')}),
         (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': config.FrameworkConfigGet('STATICFILES_DIR')}),
         tornado.web.url(r'/output_files/(.*)', ui_handlers.FileRedirectHandler, name='file_redirect_url'),
         tornado.web.url(r'/?$', ui_handlers.Redirect, name='redirect_ui_url'),
@@ -63,7 +62,7 @@ def get_handlers():
         tornado.web.url(r'/ui/worklist/?', ui_handlers.WorklistManager, name='worklist_ui_url'),
         tornado.web.url(r'/ui/configuration/?$', ui_handlers.ConfigurationManager, name='configuration_ui_url'),
         tornado.web.url(r'/ui/transactions/?', ui_handlers.Transactions, name='transactions_ui_url'),
-        tornado.web.url(r'/ui/write_report/(.*)', ui_handlers.WriteReport, name='write_report_ui_url'),
+        tornado.web.url(r'/ui/write_reports/(.*)', ui_handlers.WriteReport, name='write_reports_ui_url'),
         tornado.web.url(r'/ui/help/?', ui_handlers.Help, name='help_ui_url')]
     return URLS
 

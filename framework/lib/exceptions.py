@@ -32,6 +32,9 @@ class DBIntegrityException(FrameworkException):
     pass
 
 
+class InvalidWriteReportReference(FrameworkException):
+    pass
+
 class InvalidTargetReference(FrameworkException):
     pass
 

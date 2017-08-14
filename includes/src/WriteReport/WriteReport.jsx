@@ -1,6 +1,6 @@
 import React from 'react';
 import _ from 'lodash'
-import { Col, Row, Card, Radio, Button } from 'antd';
+import { Popconfirm, message, Input, Col, Row, Card, Radio, Button } from 'antd';
 const RadioButton = Radio.Button;
 const RadioGroup = Radio.Group;
 
@@ -9,6 +9,9 @@ import {
   Route,
   Link
 } from 'react-router-dom'
+
+import { withRouter } from 'react-router'
+
 
 import 'inline-attachment/src/inline-attachment'
 import 'inline-attachment/src/codemirror-4.inline-attachment'
@@ -19,6 +22,40 @@ import 'codemirror/addon/search/searchcursor';
 import 'codemirror/addon/search/jump-to-line';
 import CodeMirror from 'react-codemirror';
 import 'codemirror/mode/markdown/markdown';
+
+class NewReportButton extends React.Component {
+
+    constructor(props) {
+        super(props);
+    }
+
+    createAndEdit() {
+        fetch(`/api/write_reports/`, {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                content: ''
+            })
+          }).then((response) => response.json())
+            .then((responseJson) => {
+                this.props.history.push(`/ui/write_reports/${responseJson.id}`)
+          })
+    }
+
+    render() {
+      return (
+            <Button
+            onClick={this.createAndEdit.bind(this)}>
+            New Report
+          </Button>
+      )
+    }
+}
+const NewReportButtonWithRouter = withRouter(NewReportButton)
+
 
 
 class Index extends React.Component {
@@ -47,17 +84,55 @@ class Index extends React.Component {
         })
     }
 
-    renderRow(row) {
-        return <Row>{row.map(this.renderItem.bind(this))}</Row>;
+    renderRow(row, idx) {
+        return <Row key={"report-col-" + idx.toString()}>{row.map(this.renderItem.bind(this))}</Row>;
+    }
+
+    deleteReport(id, e) {
+        
+        console.log(e);
+        message.success('Delete confirmed!');
+
+        fetch(`/api/write_reports/${id}`, {
+            method: 'DELETE',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+            }
+        }).then((response) => {
+            var reports = _.filter(this.state.reports, function(r) {
+              return r.id != id;
+            })
+            this.setState(
+            { 
+                reports: reports
+            });
+        })
+    }
+
+    confirm(e) {
+      console.log(e);
+      message.success('Click on Yes');
+    }
+
+    cancel(e) {
+      console.log(e);
+      message.error('Click on No');
     }
 
     renderItem(item) {
         return (
-            <Col span={8}>
-                  <Card title={'Report ' + item.id } extra={<Link to={'/ui/write_report/' + item.id}>LinkNow</Link>} style={{ width: 300 }}>
-                    <p>Card content</p>
-                    <p>Card content</p>
-                    <p>Card content</p>
+            <Col key={"report-col-" + item.id.toString()} span={6} xs={24} sm={12} md={6}>
+                  <Card title={'Report "' + item.title + '"' } extra={''} style={{ width: 300 }}>
+                    <p>{'Created At: ' + item.created_at + '' }</p>
+                    <p>{'Updated At: ' + item.updated_at + '' }</p>
+                    <p>
+                    <Popconfirm title="Are you sure delete this report?" onConfirm={this.deleteReport.bind(this, item.id)} onCancel={this.cancel} okText="Yes" cancelText="No">
+                      <Button type="danger" icon="delete">Delete</Button>
+                    </Popconfirm>
+                    <Button type="default" icon="edit"><Link to={'/ui/write_reports/' + item.id}>Edit</Link></Button>
+                    </p>
+                    
                   </Card>
               </Col>
               )
@@ -65,7 +140,7 @@ class Index extends React.Component {
 
     render() {
 
-        var groups = _.chunk(this.state.reports, 3)
+        var groups = _.chunk(this.state.reports, 4)
         return (
         <div>
             {groups.map(this.renderRow.bind(this))}
@@ -83,6 +158,7 @@ class WriteReport extends React.Component {
         this.state = {
             errorData: [],
             code: '// Code',
+            title: '',
             selectedFormat: 'pdf'
         };
     }
@@ -90,7 +166,8 @@ class WriteReport extends React.Component {
     getInitialState() {
         return {
             code: '// Code',
-            selectedFormat: 'pdf'
+            selectedFormat: 'pdf',
+            title: ''
         };
     }
 
@@ -99,8 +176,8 @@ class WriteReport extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if(this.props.match.params.id != nextProps.match.params.id) {
-            fetch(`/api/write_report/${nextProps.match.params.id}`, {
+        if (this.props.match.params.id != nextProps.match.params.id) {
+            fetch(`/api/write_reports/${nextProps.match.params.id}`, {
                 method: 'GET',
                 headers: {
                   'Accept': 'application/json',
@@ -110,7 +187,8 @@ class WriteReport extends React.Component {
             .then((responseJson) => {
                 this.setState(
                 { 
-                    code: responseJson.content 
+                    code: responseJson.content,
+                    title: responseJson.title
                 });
             })
         } else {
@@ -122,17 +200,24 @@ class WriteReport extends React.Component {
         this.setState(
             { 
                 code: newCode 
-            });
+            })
+    };
+
+    updateTitle(event) {
+        this.setState(
+            { 
+                title: event.target.value 
+            })
     };
 
     onFormatChange(e) {
         this.setState({
           selectedFormat: e.target.value,
-        });
+        })
       }
 
     download(content, format) {
-        fetch(`/api/write_report/export/?format=`+format, {
+        fetch(`/api/write_reports/export/?format=`+format, {
             method: 'POST',
             headers: {
               'Accept': 'application/json',
@@ -143,40 +228,28 @@ class WriteReport extends React.Component {
             })
           }).then((response) => response.json())
             .then((responseJson) => {
-            window.location = '/api/write_report/download?file='+responseJson.file + '&format='+format
+            window.location = '/api/write_reports/download?file='+responseJson.file + '&format='+format
           })
     };
 
-    save(reportId, content) {
-        fetch(`/api/write_report/${reportId}`, {
-            method: 'POST',
+    save() {
+        const reportId = this.props.match.params.id
+        fetch(`/api/write_reports/${reportId}`, {
+            method: 'PUT',
             headers: {
               'Accept': 'application/json',
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                content: content
+                content: this.state.code,
+                title: this.state.title
             })
           })
     };
 
     init() {
-        var reportId = document.getElementById('write_report').getAttribute('data-report-id');
-        if (!reportId) {
-            reportId = 1;
-        }
-        
-        inlineAttachment.editors.codemirror4.attach(
-            this.myCodeMirror.getCodeMirror(),
-            {
-                uploadUrl: `/api/write_report/${reportId}/upload-attachment`
-            }
-        );
-        this.setState(
-        { 
-            reportId: reportId
-        });
-        fetch(`/api/write_report/${reportId}`, {
+
+        fetch(`/api/write_reports/${this.props.match.params.id}`, {
             method: 'GET',
             headers: {
               'Accept': 'application/json',
@@ -186,7 +259,8 @@ class WriteReport extends React.Component {
         .then((responseJson) => {
             this.setState(
             { 
-                code: responseJson.content 
+                code: responseJson.content,
+                title: responseJson.title 
             });
         })
     };
@@ -208,7 +282,8 @@ class WriteReport extends React.Component {
                   <Radio value="odt">odt</Radio>
                 </RadioGroup>
                 <br/>
-                <Button type="primary" icon="save" onClick={this.save.bind(this, this.state.reportId, this.state.code)}>Save</Button>
+                <Button type="primary" icon="save" onClick={this.save.bind(this)}>Save</Button>
+                <Input placeholder="Report Title" value={this.state.title} onChange={this.updateTitle.bind(this)} />
                 <CodeMirror ref={(ref) => this.myCodeMirror = ref} value={this.state.code} onChange={this.updateCode.bind(this)} options={options} />
             </div>
         );
@@ -218,10 +293,9 @@ class WriteReport extends React.Component {
 const WriteReportRouter = () => (
   <Router>
     <div>
-      <Link to="/ui/write_report/">Index</Link>
-      <Link to="/ui/write_report/new">New</Link>
-      <Route exact path="/ui/write_report/" component={Index}/>
-      <Route path="/ui/write_report/:id" component={WriteReport}/>
+      <NewReportButtonWithRouter/>
+      <Route exact path="/ui/write_reports/" component={Index}/>
+      <Route path="/ui/write_reports/:id" component={WriteReport}/>
     </div>
   </Router>
 )
