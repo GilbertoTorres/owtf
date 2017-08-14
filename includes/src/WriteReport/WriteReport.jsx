@@ -1,4 +1,3 @@
-import React from 'react';
 import _ from 'lodash'
 import { Popconfirm, message, Input, Col, Row, Card, Radio, Button } from 'antd';
 const RadioButton = Radio.Button;
@@ -9,9 +8,8 @@ import {
   Route,
   Link
 } from 'react-router-dom'
-
 import { withRouter } from 'react-router'
-
+import React from 'react';
 
 import 'inline-attachment/src/inline-attachment'
 import 'inline-attachment/src/codemirror-4.inline-attachment'
@@ -22,6 +20,26 @@ import 'codemirror/addon/search/searchcursor';
 import 'codemirror/addon/search/jump-to-line';
 import CodeMirror from 'react-codemirror';
 import 'codemirror/mode/markdown/markdown';
+
+
+const ReportInitLogic = ({reportId, onSuccess, run}) => {
+  if (run) {
+    fetch(`/api/write_reports/${reportId}`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+      }).then((response) => response.json())
+      .then((responseJson) => {
+        onSuccess({ 
+              code: responseJson.content,
+              title: responseJson.title 
+        })
+      })
+  }
+  return null;
+}
 
 class NewReportButton extends React.Component {
 
@@ -68,7 +86,9 @@ class Index extends React.Component {
         };
     }
 
+
     componentDidMount() {
+
         fetch(`/api/write_reports/`, {
             method: 'GET',
             headers: {
@@ -91,6 +111,7 @@ class Index extends React.Component {
     deleteReport(id, e) {
         
         console.log(e);
+        message.success('Delete confirmed!'); // FIXME: if not called twice, it did not appear
         message.success('Delete confirmed!');
 
         fetch(`/api/write_reports/${id}`, {
@@ -110,14 +131,10 @@ class Index extends React.Component {
         })
     }
 
-    confirm(e) {
-      console.log(e);
-      message.success('Click on Yes');
-    }
-
     cancel(e) {
       console.log(e);
-      message.error('Click on No');
+      message.success('Delete canceled!'); // FIXME: if not called twice, it did not appear
+      message.success('Delete canceled!');
     }
 
     renderItem(item) {
@@ -159,15 +176,9 @@ class WriteReport extends React.Component {
             errorData: [],
             code: '// Code',
             title: '',
-            selectedFormat: 'pdf'
-        };
-    }
-
-    getInitialState() {
-        return {
-            code: '// Code',
             selectedFormat: 'pdf',
-            title: ''
+            currentReportId: this.props.match.params.id,
+            doInitReport: true
         };
     }
 
@@ -177,19 +188,9 @@ class WriteReport extends React.Component {
 
     componentWillReceiveProps(nextProps) {
         if (this.props.match.params.id != nextProps.match.params.id) {
-            fetch(`/api/write_reports/${nextProps.match.params.id}`, {
-                method: 'GET',
-                headers: {
-                  'Accept': 'application/json',
-                  'Content-Type': 'application/json'
-                }
-            }).then((response) => response.json())
-            .then((responseJson) => {
-                this.setState(
-                { 
-                    code: responseJson.content,
-                    title: responseJson.title
-                });
+            this.setState(
+            { 
+                doInitReport: true
             })
         } else {
             console.log("Same ids ...");
@@ -249,29 +250,12 @@ class WriteReport extends React.Component {
 
     init() {
 
-      var reportId = this.props.match.params.id;
-      
       inlineAttachment.editors.codemirror4.attach(
         this.myCodeMirror.getCodeMirror(),
         {
-          uploadUrl: `/api/write_reports/${reportId}/upload-attachment`
+          uploadUrl: `/api/write_reports/${this.state.currentReportId}/upload-attachment`
         }
-      );
-
-        fetch(`/api/write_reports/${reportId}`, {
-            method: 'GET',
-            headers: {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json'
-            }
-        }).then((response) => response.json())
-        .then((responseJson) => {
-            this.setState(
-            { 
-                code: responseJson.content,
-                title: responseJson.title 
-            });
-        })
+      )
     };
 
     render() {
@@ -294,6 +278,10 @@ class WriteReport extends React.Component {
                 <Button type="primary" icon="save" onClick={this.save.bind(this)}>Save</Button>
                 <Input placeholder="Report Title" value={this.state.title} onChange={this.updateTitle.bind(this)} />
                 <CodeMirror ref={(ref) => this.myCodeMirror = ref} value={this.state.code} onChange={this.updateCode.bind(this)} options={options} />
+                <ReportInitLogic run={this.state.doInitReport} 
+                            reportId={this.state.currentReportId} 
+                            onSuccess={(state) => { this.setState({ title: state.title, code: state.code, doInitReport: false}) } } 
+                          />
             </div>
         );
     }
