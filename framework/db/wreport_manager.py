@@ -5,9 +5,8 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from framework.dependency_management.dependency_resolver import BaseComponent
 from framework.dependency_management.interfaces import WReportManagerInterface
-from framework.lib.exceptions import InvalidParameterType
 from framework.db import models
-from framework.utils import FileOperations
+from framework.lib import exceptions
 
 
 class WReportManager(BaseComponent, WReportManagerInterface):
@@ -33,16 +32,44 @@ class WReportManager(BaseComponent, WReportManagerInterface):
 
 """
 
+    def list(self):
+        wreport = self.db.session.query(models.WriteReport).order_by(models.WriteReport.updated_at.desc()).all()
+        return wreport
+
     def load(self, id):
         wreport = self.db.session.query(models.WriteReport).get(id)
         return wreport
 
-    def save(self, id, title, content):
-        self.db.session.merge(
-            models.WriteReport(
-                id=id,
-                title=title,
-                content=content
-            )
-        )
-        self.db.session.commit()
+    def save(self, data):
+        obj = self.load(data['id'])
+        if not obj:
+            raise exceptions.InvalidWriteReportReference("No write report with id: %s" % str(data['id']))
+
+        obj.title = data['title']
+        obj.content = data['content']
+        self.db.session.merge(obj)
+        try:
+            self.db.session.commit()
+        except SQLAlchemyError as e:
+            self.db.session.rollback()
+            raise e
+        return obj
+        
+    def create(self, data):
+        obj = models.WriteReport(title=data['title'], content=data['content'])
+        self.db.session.add(obj)
+        try:
+            self.db.session.commit()
+        except SQLAlchemyError as e:
+            self.db.session.rollback()
+            raise e
+        return obj
+
+
+    def delete(self, id):
+        self.db.session.query(models.WriteReport).filter(models.WriteReport.id == id).delete()
+        try:
+            self.db.session.commit()
+        except SQLAlchemyError as e:
+            self.db.session.rollback()
+            raise e
