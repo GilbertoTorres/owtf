@@ -249,7 +249,16 @@ class WriteReport extends React.Component {
 
     init() {
 
-        fetch(`/api/write_reports/${this.props.match.params.id}`, {
+      var reportId = this.props.match.params.id;
+      
+      inlineAttachment.editors.codemirror4.attach(
+        this.myCodeMirror.getCodeMirror(),
+        {
+          uploadUrl: `/api/write_reports/${reportId}/upload-attachment`
+        }
+      );
+
+        fetch(`/api/write_reports/${reportId}`, {
             method: 'GET',
             headers: {
               'Accept': 'application/json',
