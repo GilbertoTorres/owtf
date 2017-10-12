@@ -9,6 +9,7 @@ provide plugins with common HTML Rendering functions
     This is being deprecated.
 """
 
+import os
 import cgi
 
 from tornado.template import Loader
@@ -136,6 +137,11 @@ class Reporter(BaseComponent, ReporterInterface):
             OutputLines = ''.join(OutputLines[0:self.mNumLinesToShow])
         else:
             OutputLines = ''.join(OutputLines)
+
+        _norm_file = os.path.join(os.path.dirname(AbsPath),"_normalized_output.json")
+        _norm_json = open(_norm_file, "r").read()
+        print(_norm_json)
+        
         table_vars = {
             "Name": Name,
             "CommandIntro": CommandIntro,
@@ -145,8 +151,10 @@ class Reporter(BaseComponent, ReporterInterface):
             "OutputLines": OutputLines,
             "TimeStr": TimeStr,
             "mNumLinesToShow": self.mNumLinesToShow,
-            "longOutput": longOutput
+            "longOutput": longOutput,
+            "_norm_json": _norm_json
         }
+
         return self.Loader.load("command_dump.html").generate(**table_vars)
 
     def URLsFromStr(self, TimeStr, VisitURLs, URLList, NumFound):

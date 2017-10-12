@@ -161,6 +161,8 @@ class PluginHelper(BaseComponent):
         if not PluginOutputDir:
             PluginOutputDir = self.InitPluginOutputDir(PluginInfo)
         self.timer.start_timer('FormatCommandAndOutput')
+
+        self.shell.dynamic_replacements['###normalized_output###'] = '_normalized_output.json'
         ModifiedCommand = self.shell.get_modified_shell_cmd(Command, PluginOutputDir)
         try:
             RawOutput = self.shell.shell_exec_monitor(ModifiedCommand, PluginInfo)
