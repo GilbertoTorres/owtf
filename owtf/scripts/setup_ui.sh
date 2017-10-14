@@ -7,9 +7,12 @@ cd $(dirname "$0");SCRIPT_DIR=`pwd -P`;cd $OLDPWD
 . $SCRIPT_DIR/common.sh
 
 # Download community written templates for export report functionality.
+
 if [ ! -d "${1}/webui/src/Report/templates" ]; then
     echo "${warning} Templates not found, fetching the latest ones...${reset}"
     git clone https://github.com/owtf/templates.git "$1/webui/src/Report/templates"
+else
+    echo "${info}[*] Templates directory found. Nothing done.${reset}"
 fi
 if [ ! -z "${OWTF_DEV}" ]; then
     echo "OWTF_DEV is set, building the bundle"
@@ -39,5 +42,5 @@ if [ ! -z "${OWTF_DEV}" ]; then
     yarn build
     echo "${normal}[*] Build successful${reset}"
 else
-    echo "variable OWTF_DEV is not set, using the bundled assets"
+    echo "${normal}[*] Variable OWTF_DEV is not set, using the bundled assets${reset}"
 fi
