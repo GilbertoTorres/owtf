@@ -11,7 +11,7 @@ provide plugins with common HTML Rendering functions
 
 import os
 import cgi
-
+import json
 from tornado.template import Loader
 
 from owtf.dependency_management.dependency_resolver import BaseComponent
@@ -140,8 +140,9 @@ class Reporter(BaseComponent, ReporterInterface):
 
         _norm_file = os.path.join(os.path.dirname(AbsPath),"_normalized_output.json")
         _norm_json = open(_norm_file, "r").read()
-        print(_norm_json)
         
+        jobj = json.loads(_norm_json)
+
         table_vars = {
             "Name": Name,
             "CommandIntro": CommandIntro,
@@ -152,8 +153,10 @@ class Reporter(BaseComponent, ReporterInterface):
             "TimeStr": TimeStr,
             "mNumLinesToShow": self.mNumLinesToShow,
             "longOutput": longOutput,
-            "_norm_json": _norm_json
+            "_norm_json": _norm_json,
+            "jobj": jobj
         }
+        
 
         return self.Loader.load("command_dump.html").generate(**table_vars)
 

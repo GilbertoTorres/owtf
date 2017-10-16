@@ -119,10 +119,13 @@ class PluginDB(BaseComponent, DBPluginInterface):
         # 'PLUGIN_DIR'.
         plugins = []
         for root, _, files in os.walk(self.config.get_val('PLUGINS_DIR')):
+            print("Loading files:")
+            print(str(files))
             plugins.extend([os.path.join(root, filename) for filename in files if filename.endswith('py')])
         plugins = sorted(plugins)
         # Retrieve the information of the plugin.
         for plugin_path in plugins:
+            print("plugin_path:" + plugin_path)
             # Only keep the relative path to the plugin
             plugin = plugin_path.replace(self.config.get_val('PLUGINS_DIR'), '')
             # TODO: Using os.path.sep might not be portable especially on
@@ -136,8 +139,10 @@ class PluginDB(BaseComponent, DBPluginInterface):
             # Retrieve the internal name and code of the plugin.
             name, code = os.path.splitext(file)[0].split('@')
             # Only load the plugin if in XXX_TEST_GROUPS configuration (e.g. web_testgroups.cfg)
+            print("tesgroup start")
             if self.db.session.query(models.TestGroup).get(code) is None:
                 continue
+            print("tesgroup end")
             # Load the plugin as a module.
             filename, pathname, desc = imp.find_module(os.path.splitext(os.path.basename(plugin_path))[0],
                                                        [os.path.dirname(plugin_path)])
