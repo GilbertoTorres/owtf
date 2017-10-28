@@ -55,19 +55,17 @@ docs_requires = [
 class PostDevelopCommand(develop):
     """Post-installation for development mode."""
     def run(self):
+        develop.run(self)
         print('Running post install')
         call([sys.executable, post_script])
-        develop.run(self)
-
 
 class PostInstallCommand(install):
     """Post-installation for installation mode."""
     def run(self):
         # Need because of a setuptools bug: https://github.com/pypa/setuptools/issues/456
+        self.do_egg_install()
         print('Running post install')
         call([sys.executable, post_script])
-        self.do_egg_install()
-
 
 setup(
     name='owtf',
@@ -78,7 +76,7 @@ setup(
     author_email="abraham.aranguren@owasp.org",
     description='OWASP+PTES focused try to unite great tools and make pen testing more efficient',
     long_description=parse_file('README.md'),
-    packages=find_packages(exclude=['*node_modules/*']),
+    packages=find_packages(exclude=["node_modules.*", "*.node_modules", "*.node_modules.*", "node_modules"]),
     include_package_data=True,
     zip_safe=False,
     platforms='any',

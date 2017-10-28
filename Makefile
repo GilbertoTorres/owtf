@@ -42,6 +42,10 @@ opt-tools:
 web-tools:
 	sudo apt-get install kali-linux-web
 
+activate-virtualenv:
+	pip install virtualenv
+	virtualenv ${HOME}/.venv/owtf
+	source "${HOME}/.venv/owtf/bin/activate"
 ### REQUIREMENTS
 
 install-python-requirements: setup.py check-root
@@ -144,6 +148,8 @@ clean: clean-py clean-js clean-logs
 distclean-py: clean-py
 	@echo "--> Removing egg-info directory."
 	rm -rf owtf.egg-info
+	rm -rf build/
+	rm -rf dist/
 
 distclean-js:
 	@echo "--> Removing node modules."
