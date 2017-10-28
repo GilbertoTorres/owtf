@@ -25,7 +25,7 @@
      <h4>Report</h4>
      <h5>Hosts</h5>
      {% for host in jobj['hosts'] %}
-        <b>Name:</b> {{ host['name'] }}
+        <b>Name:</b> {{ host['name'] }}<br/>
          {% for iface in host['interfaces'] %}
             <b>MAC Address:</b> {{ iface['mac'] }}<br/>
             <b>IPv4:</b> {{ iface['ipv4']['address'] }}<br/>
