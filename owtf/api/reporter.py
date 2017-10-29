@@ -133,7 +133,7 @@ class Reporter(BaseComponent, ReporterInterface):
         else:
             OutputLines = ''.join(OutputLines)
 
-        _norm_file = os.path.join(os.path.dirname(AbsPath),"_normalized_output.json")
+        _norm_file = os.path.join(os.path.dirname(AbsPath), self.config.get_val("NORMALIZED_FILE"))
         _norm_json=None
         jobj=None
         if (os.path.isfile(_norm_file)):
