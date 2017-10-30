@@ -203,7 +203,7 @@ class TargetDB(BaseComponent, TargetInterface):
             if session_obj in target_obj.sessions:
                 raise DBIntegrityException("%s already present in Target DB & session" % target_url)
             else:
-                self.db.OWTFSession.add_target_to_session(target_obj.id, session_id=session_obj.id)
+                self.get_component("session_db").add_target_to_session(target_obj.id, session_id=session_obj.id)
 
     @session_required
     def add_targets(self, target_urls, session_id=None):

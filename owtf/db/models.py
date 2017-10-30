@@ -10,7 +10,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy import Table, Column, Integer, String, Boolean, Float, DateTime, ForeignKey, Text, Index
 from sqlalchemy import UniqueConstraint
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 
 
 Base = declarative_base()
@@ -312,3 +312,112 @@ class Mapping(Base):
     owtf_code = Column(String, primary_key=True)
     mappings = Column(String)
     category = Column(String, nullable=True)
+
+# Report Enhancement
+
+class Host(Base):
+    __tablename__ = 'hosts'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    uid = Column(String)
+    name = Column(String)
+
+    session_id = Column(Integer, ForeignKey('sessions.id'))
+    session = relationship(Session, backref=backref('hosts', uselist=True))
+
+    description = Column(String, nullable=True)
+    os = Column(String, nullable=True)
+
+class Iface(Base):
+    __tablename__ = 'ifaces'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    uid = Column(String)
+    name = Column(String)
+    description = Column(String, nullable=True)
+
+    host_id = Column(Integer, ForeignKey('hosts.id'))
+    host = relationship(Host, backref=backref('ifaces', uselist=True))
+
+
+    mac = Column(String)
+
+    ipv4_address = Column(String, nullable=True)
+    ipv4_gateway = Column(String, nullable=True)
+    ipv4_mask = Column(String, nullable=True)
+
+    ipv6_address = Column(String, nullable=True)
+    ipv6_gateway = Column(String, nullable=True)
+    ipv6_mask = Column(String, nullable=True)
+
+    network_segment = Column(String, nullable=True)
+
+class Service(Base):
+    __tablename__ = 'services'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    uid = Column(String)
+
+    name = Column(String)
+    description = Column(String, nullable=True)
+
+    iface_id = Column(Integer, ForeignKey('ifaces.id'))
+    iface = relationship(Iface, backref=backref('services', uselist=True))
+
+    ports = Column(String, nullable=True) # json
+    protocol = Column(String, nullable=True)
+    status = Column(String, nullable=True)
+    version = Column(String, nullable=True)
+
+
+class Cred(Base):
+    __tablename__ = 'creds'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    uid = Column(String)
+
+    name = Column(String)
+    description = Column(String, nullable=True)
+
+    service_id = Column(Integer, ForeignKey('services.id'))
+    service = relationship(Service, backref=backref('creds', uselist=True))
+
+    username = Column(String, nullable=True)
+    password = Column(String, nullable=True)
+
+
+class Vuln(Base):
+    __tablename__ = 'vulns'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    uid = Column(String)
+    
+    name = Column(String)
+    description = Column(String, nullable=True)
+    type = Column(String(20))
+
+    service_id = Column(Integer, ForeignKey('services.id'))
+    service = relationship(Service, backref=backref('vulns', uselist=True))
+
+    resolution = Column(String, nullable=True)
+    severity = Column(String, nullable=True)
+    refs = Column(String, nullable=True) # json
+
+    __mapper_args__ = {
+        'polymorphic_on':type,
+        'polymorphic_identity':'vulns'
+    }
+
+class VulnWeb(Vuln):
+    __mapper_args__ = {
+        'polymorphic_identity':'vuln_webs'
+    }
+    path = Column(String, nullable=True)
+    website = Column(String, nullable=True)
+    request = Column(String, nullable=True)
+    response = Column(String, nullable=True)
+    method = Column(String, nullable=True)
+    pname = Column(String, nullable=True)
+    params = Column(String, nullable=True)
+    query = Column(String, nullable=True)
+    attachments = Column(String, nullable=True)

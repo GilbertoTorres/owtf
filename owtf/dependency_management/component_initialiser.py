@@ -24,6 +24,7 @@ from owtf.managers.resource import ResourceDB
 from owtf.managers.session import OWTFSessionDB
 from owtf.managers.target import TargetDB
 from owtf.managers.transaction import TransactionManager
+from owtf.managers.normalizer import Normalizer
 from owtf.managers.url import URLManager
 from owtf.managers.worklist import WorklistManager
 from owtf.protocols.smb import SMB
@@ -60,6 +61,7 @@ class ComponentInitialiser():
         WorklistManager()
         ConfigDB()
         CommandRegister()
+        Normalizer()
         TargetDB()
         ResourceDB()
         ErrorDB()

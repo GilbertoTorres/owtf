@@ -12,10 +12,10 @@ from owtf.lib import exceptions
 def session_required(func):
     """
     Inorder to use this decorator on a `method` there is one requirements
-    + target_id must be a kwarg of the function
+    + session_id must be a kwarg of the function
 
-    All this decorator does is check if a valid value is passed for target_id
-    if not get the target_id from target manager and pass it
+    All this decorator does is check if a valid value is passed for session_id
+    if not get the session_id from target manager and pass it
     """
     def wrapped_function(*args, **kwargs):
         # True if target_id doesnt exist

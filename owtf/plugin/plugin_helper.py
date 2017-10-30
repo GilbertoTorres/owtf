@@ -30,6 +30,7 @@ class PluginHelper(BaseComponent):
     def __init__(self):
         self.register_in_service_locator()
         self.config = self.get_component("config")
+        self.normalizer = self.get_component("normalizer")
         self.target = self.get_component("target")
         self.url_manager = self.get_component("url_manager")
         self.plugin_handler = self.get_component("plugin_handler")
@@ -171,6 +172,9 @@ class PluginHelper(BaseComponent):
         except FrameworkAbortException as PartialOutput:
             RawOutput = str(PartialOutput.parameter)  # Save Partial Output
             FrameworkAbort = True
+
+        _norm_file = os.path.join(PluginOutputDir, self.config.get_val("NORMALIZED_FILE"))
+        self.normalizer.process(_norm_file)
 
         TimeStr = self.timer.get_elapsed_time_as_str('FormatCommandAndOutput')
         logging.info("Time=%s", TimeStr)

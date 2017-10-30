@@ -621,3 +621,9 @@ class ReporterInterface(AbstractInterface):
     @abstractmethod
     def sanitize_html(self):
         pass
+
+class NormalizerInterface(AbstractInterface):
+
+    @abstractmethod
+    def process(self, filename):
+        pass
