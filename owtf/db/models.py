@@ -11,6 +11,8 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy import Table, Column, Integer, String, Boolean, Float, DateTime, ForeignKey, Text, Index
 from sqlalchemy import UniqueConstraint
 from sqlalchemy.orm import relationship, backref
+from sqlalchemy_utils import generic_relationship
+
 
 
 Base = declarative_base()
@@ -421,3 +423,15 @@ class VulnWeb(Vuln):
     params = Column(String, nullable=True)
     query = Column(String, nullable=True)
     attachments = Column(String, nullable=True)
+
+class Note(Base):
+    __tablename__ = 'event'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+
+    # This is used to discriminate between the linked tables.
+    object_type = Column(String(255))
+
+    # This is used to point to the primary key of the linked row.
+    object_id = Column(Integer)
+
+    object = generic_relationship(object_type, object_id)

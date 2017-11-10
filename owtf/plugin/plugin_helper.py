@@ -163,9 +163,8 @@ class PluginHelper(BaseComponent):
             PluginOutputDir = self.InitPluginOutputDir(PluginInfo)
         self.timer.start_timer('FormatCommandAndOutput')
 
-        ModifiedCommand = self.shell.get_modified_shell_cmd(Command, PluginOutputDir)
         try:
-            RawOutput = self.shell.shell_exec_monitor(ModifiedCommand, PluginInfo)
+            RawOutput = self.shell.shell_exec_monitor2(PluginOutputDir, Command, PluginInfo)
         except PluginAbortException as PartialOutput:
             RawOutput = str(PartialOutput.parameter)  # Save Partial Output
             PluginAbort = True
@@ -178,7 +177,8 @@ class PluginHelper(BaseComponent):
 
         TimeStr = self.timer.get_elapsed_time_as_str('FormatCommandAndOutput')
         logging.info("Time=%s", TimeStr)
-        out = [ModifiedCommand, FrameworkAbort, PluginAbort, TimeStr, RawOutput, PluginOutputDir]
+        # out = [ModifiedCommand, FrameworkAbort, PluginAbort, TimeStr, RawOutput, PluginOutputDir]
+        out = [Command, FrameworkAbort, PluginAbort, TimeStr, RawOutput, PluginOutputDir]
         return out
 
     def GetCommandOutputFileNameAndExtension(self, InputName):
@@ -224,6 +224,7 @@ class PluginHelper(BaseComponent):
             if FrameworkAbort:
                 raise FrameworkAbortException(PreviousOutput + plugin_output)
             output_list += plugin_output
+
         return output_list
 
     def LogURLsFromStr(self, RawOutput):

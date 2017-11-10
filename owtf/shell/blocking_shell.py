@@ -23,6 +23,7 @@ class Shell(BaseComponent, ShellInterface):
     def __init__(self):
         self.register_in_service_locator()
         # Some settings like the plugin output dir are dynamic, config is no place for those
+        self.config = self.get_component("config")
         self.dynamic_replacements = {}
         self.command_register = self.get_component("command_register")
         self.target = self.get_component("target")
@@ -146,6 +147,30 @@ class Shell(BaseComponent, ShellInterface):
         )
         return proc
 
+    def create_subprocess2(self, command, path):
+        """Create a subprocess for the command to run
+
+        :param command: Command to run
+        :type command: `str`
+        :return:
+        :rtype:
+        """
+        # Add proxy settings to environment variables so that tools can pick it up
+        # TODO: Uncomment the following lines, when testing has been ensured for using environment variables for
+        # proxification, because these variables are set for every command that is run
+        # http://stackoverflow.com/questions/4789837/how-to-terminate-a-python-subprocess-launched-with-shell-true/4791612#4791612)
+        proc = subprocess.Popen(
+            command,
+            shell=True,
+            env=self.shell_env,
+            preexec_fn=os.setsid,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            bufsize=1,
+            cwd=path
+        )
+        return proc
+
     def shell_exec_monitor(self, command, plugin_info):
         """Monitor shell command execution
 
@@ -171,8 +196,106 @@ class Shell(BaseComponent, ShellInterface):
 
         # Stolen from: http://stackoverflow.com/questions/5833716/how-to-capture-output-of-a-shell-script-running-
         # in-a-separate-process-in-a-wxpyt
+
         try:
             proc = self.create_subprocess(command)
+            while True:
+                line = proc.stdout.readline()
+                if not line:
+                    break
+                # NOTE: Below MUST BE print instead of "cprint" to clearly distinguish between owtf
+                # output and tool output
+                logging.warn(line.strip())  # Show progress on the screen too!
+                output += line  # Save as much output as possible before a tool crashes! :)
+        except KeyboardInterrupt:
+            os.killpg(proc.pid, signal.SIGINT)
+            outdata, errdata = proc.communicate()
+            logging.warn(outdata)
+            output += outdata
+            try:
+                os.killpg(os.getpgid(proc.pid), signal.SIGTERM)  # Plugin KIA (Killed in Action)
+            except OSError:
+                pass  # Plugin RIP (Rested In Peace)
+            cancelled = True
+            output += self.error_handler.user_abort('Command', output)  # Identify as Command Level abort
+        finally:
+            try:
+                self.finish_cmd(cmd_info, cancelled, plugin_info)
+            except SQLAlchemyError as e:
+                logging.error("Exception occurred while during database transaction : \n%s", str(e))
+                output += str(e)
+        return scrub_output(output)
+
+    def shell_exec_monitor2(self, path, command, plugin_info):
+        """Monitor shell command execution
+
+        :param command: Command to run
+        :type command: `str`
+        :param plugin_info: Plugin context info
+        :type plugin_info: `dict`
+        :return: Scrubbed output from the command
+        :rtype: `str`
+        """
+        cmd_info = self.start_cmd(command, command)
+        target, can_run = self.can_run_cmd(cmd_info)
+        if not can_run:
+            message = "The command was already run for target: %s" % str(target)
+            return message
+        logging.info("")
+        logging.info("Executing :\n\n%s\n\n", command)
+        logging.info("")
+        logging.info("------> Execution Start Date/Time: %s" % self.timer.get_start_date_time_as_str('Command'))
+        logging.info("")
+        output = ''
+        cancelled = False
+
+        # Stolen from: http://stackoverflow.com/questions/5833716/how-to-capture-output-of-a-shell-script-running-
+        # in-a-separate-process-in-a-wxpyt
+
+        # Try with unisecbarber first
+
+        proc = None
+        try:
+            usb_cmd = "unisecbarber -m cmd -o %s -- %s" % (self.config.get_val("NORMALIZED_FILE"), command)
+            proc = self.create_subprocess2(usb_cmd, path)
+            logging.warn("Running '"  + usb_cmd + "' ...")
+            while True:
+                line = proc.stdout.readline()
+                if not line:
+                    break
+                # NOTE: Below MUST BE print instead of "cprint" to clearly distinguish between owtf
+                # output and tool output
+                logging.warn(line.strip())  # Show progress on the screen too!
+                output += line  # Save as much output as possible before a tool crashes! :)
+        except KeyboardInterrupt:
+            os.killpg(proc.pid, signal.SIGINT)
+            outdata, errdata = proc.communicate()
+            logging.warn(outdata)
+            output += outdata
+            try:
+                os.killpg(os.getpgid(proc.pid), signal.SIGTERM)  # Plugin KIA (Killed in Action)
+            except OSError:
+                pass  # Plugin RIP (Rested In Peace)
+            cancelled = True
+            output += self.error_handler.user_abort('Command', output)  # Identify as Command Level abort
+
+        proc.wait()
+        logging.warn("Unisecbarber return code: "  + str(proc.returncode))
+        if proc.returncode == 0:
+            logging.warn("Unisecbarber compatible!")
+            try:
+                self.finish_cmd(cmd_info, cancelled, plugin_info)
+            except SQLAlchemyError as e:
+                logging.error("Exception occurred while during database transaction : \n%s", str(e))
+                output += str(e)
+            finally:
+                return scrub_output(output)
+                
+        logging.warn("Executing w/o unisecbarber ...")
+
+        try:
+            proc = self.create_subprocess2(command, path)
+            logging.warn("Running '"  + command + "' ...")
             while True:
                 line = proc.stdout.readline()
                 if not line:

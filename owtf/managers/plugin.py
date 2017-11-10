@@ -139,10 +139,8 @@ class PluginDB(BaseComponent, DBPluginInterface):
             # Retrieve the internal name and code of the plugin.
             name, code = os.path.splitext(file)[0].split('@')
             # Only load the plugin if in XXX_TEST_GROUPS configuration (e.g. web_testgroups.cfg)
-            print("tesgroup start")
             if self.db.session.query(models.TestGroup).get(code) is None:
                 continue
-            print("tesgroup end")
             # Load the plugin as a module.
             filename, pathname, desc = imp.find_module(os.path.splitext(os.path.basename(plugin_path))[0],
                                                        [os.path.dirname(plugin_path)])
