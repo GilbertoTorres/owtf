@@ -173,7 +173,8 @@ class PluginHelper(BaseComponent):
             FrameworkAbort = True
 
         _norm_file = os.path.join(PluginOutputDir, self.config.get_val("NORMALIZED_FILE"))
-        self.normalizer.process(_norm_file)
+        if os.path.isfile(_norm_file):
+            self.normalizer.process(_norm_file)
 
         TimeStr = self.timer.get_elapsed_time_as_str('FormatCommandAndOutput')
         logging.info("Time=%s", TimeStr)

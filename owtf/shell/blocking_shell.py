@@ -95,7 +95,7 @@ class Shell(BaseComponent, ShellInterface):
         """
         return multi_replace(text, {' ': '\ ', '(': '\(', ')': '\)'})
 
-    def get_modified_shell_cmd(self, command, plugin_output_dir):
+    def get_modified_shell_cmd(self, command):
         """Returns the modified shell command to run
 
         :param command: Command to run
@@ -106,8 +106,23 @@ class Shell(BaseComponent, ShellInterface):
         :rtype: `str`
         """
         self.refresh_replacements()
-        new_cmd = "cd %s;%s" % (self.escape_shell_path(plugin_output_dir),
-                                   multi_replace(command, self.dynamic_replacements))
+        new_cmd = "cd %s;%s" % (self.escape_shell_path(self.target.get_path('plugin_output_dir')),
+                                    multi_replace(command, self.dynamic_replacements))
+        self.old_cmds[new_cmd] = command
+        return new_cmd
+
+    def replace_dyn_vars(self, command):
+        """Returns the modified shell command to run
+
+        :param command: Command to run
+        :type command: `str`
+        :param plugin_output_dir: Path to the plugin output directory
+        :type plugin_output_dir: `str`
+        :return: Modified command
+        :rtype: `str`
+        """
+        self.refresh_replacements()
+        new_cmd = "%s" % multi_replace(command, self.dynamic_replacements)
         self.old_cmds[new_cmd] = command
         return new_cmd
 
@@ -181,6 +196,7 @@ class Shell(BaseComponent, ShellInterface):
         :return: Scrubbed output from the command
         :rtype: `str`
         """
+        command = self.get_modified_shell_cmd(command)
         cmd_info = self.start_cmd(command, command)
         target, can_run = self.can_run_cmd(cmd_info)
         if not can_run:
@@ -196,7 +212,6 @@ class Shell(BaseComponent, ShellInterface):
 
         # Stolen from: http://stackoverflow.com/questions/5833716/how-to-capture-output-of-a-shell-script-running-
         # in-a-separate-process-in-a-wxpyt
-
         try:
             proc = self.create_subprocess(command)
             while True:
@@ -236,6 +251,7 @@ class Shell(BaseComponent, ShellInterface):
         :return: Scrubbed output from the command
         :rtype: `str`
         """
+        self.replace_dyn_vars(command)
         cmd_info = self.start_cmd(command, command)
         target, can_run = self.can_run_cmd(cmd_info)
         if not can_run:
@@ -321,6 +337,7 @@ class Shell(BaseComponent, ShellInterface):
             except SQLAlchemyError as e:
                 logging.error("Exception occurred while during database transaction : \n%s", str(e))
                 output += str(e)
+        proc.wait()
         return scrub_output(output)
 
     def shell_exec(self, command, **kwds):
