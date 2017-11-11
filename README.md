@@ -34,9 +34,17 @@ Installation
 
 Recommended:
 
-> Using a virtualenv is highly recommended!
+> Using a virtualenv is highly recommended! You will have to install [unisecbarber](https://github.com/csk/unisecbarber) first for this experimental branch to work
 
-`pip install owtf` or `pip install git+https://github.com/owtf/owtf#egg=owtf` or clone the repo and `python setup.py install`
+`pip install git+https://github.com/owtf/owtf@experimental#egg=owtf` 
+
+or clone and install
+
+```
+$ git clone -b experimental https://github.com/csk/owtf.git
+$ cd owtf
+$ python setup.py develop`
+```
 
 To run OWTF on Windows or MacOS, use the Dockerfile (requires **Docker** installed) provided to try OWTF:
 
@@ -50,6 +58,7 @@ To run OWTF on Windows or MacOS, use the Dockerfile (requires **Docker** install
    $ cd owtf/
    # Install the develop version, so that any change made is instantly reflected.
    $ python setup.py develop
+   $ pip install -r requirements.txt
    # Run OWTF!
    $ python -m owtf
   ```
@@ -66,9 +75,10 @@ Dependencies: Install homebrew (https://brew.sh/) and follow the steps given bel
  $ brew install coreutils gnu-sed openssl
  # We need to install 'cryptography' first to avoid issues
  $ pip install cryptography --global-option=build_ext --global-option="-L/usr/local/opt/openssl/lib" --global-option="-I/usr/local/opt/openssl/include"
- $ git clone <this repo>
+ $ git clone -b experimental https://github.com/csk/owtf.git
  $ cd owtf
- $ python setup.py install
+ $ python setup.py develop
+ $ pip install -r requirements.txt
  # Run OWTF!
  $ python -m owtf
 ```
