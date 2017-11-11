@@ -35,9 +35,9 @@ requirements = pip.req.parse_requirements('requirements.txt', session=pip.downlo
 for item in requirements:
     if getattr(item, 'url', None):  # older pip has url
         links.append(str(item.url))
-    if getattr(item, 'link', None):  # newer pip has link
+    elif getattr(item, 'link', None):  # newer pip has link
         links.append(str(item.link))
-    if item.req:
+    elif item.req:
         requires.append(str(item.req))  # always the package name
 
 post_script = os.path.join(ROOT_DIR, "owtf/install/install.py")
