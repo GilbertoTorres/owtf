@@ -30,6 +30,7 @@ class PluginHelper(BaseComponent):
     def __init__(self):
         self.register_in_service_locator()
         self.config = self.get_component("config")
+        self.normalizer = self.get_component("normalizer")
         self.target = self.get_component("target")
         self.url_manager = self.get_component("url_manager")
         self.plugin_handler = self.get_component("plugin_handler")
@@ -161,9 +162,9 @@ class PluginHelper(BaseComponent):
         if not PluginOutputDir:
             PluginOutputDir = self.InitPluginOutputDir(PluginInfo)
         self.timer.start_timer('FormatCommandAndOutput')
-        ModifiedCommand = self.shell.get_modified_shell_cmd(Command, PluginOutputDir)
+
         try:
-            RawOutput = self.shell.shell_exec_monitor(ModifiedCommand, PluginInfo)
+            RawOutput = self.shell.shell_exec_monitor2(PluginOutputDir, Command, PluginInfo)
         except PluginAbortException as PartialOutput:
             RawOutput = str(PartialOutput.parameter)  # Save Partial Output
             PluginAbort = True
@@ -171,9 +172,14 @@ class PluginHelper(BaseComponent):
             RawOutput = str(PartialOutput.parameter)  # Save Partial Output
             FrameworkAbort = True
 
+        _norm_file = os.path.join(PluginOutputDir, self.config.get_val("NORMALIZED_FILE"))
+        if os.path.isfile(_norm_file):
+            self.normalizer.process(_norm_file)
+
         TimeStr = self.timer.get_elapsed_time_as_str('FormatCommandAndOutput')
         logging.info("Time=%s", TimeStr)
-        out = [ModifiedCommand, FrameworkAbort, PluginAbort, TimeStr, RawOutput, PluginOutputDir]
+        # out = [ModifiedCommand, FrameworkAbort, PluginAbort, TimeStr, RawOutput, PluginOutputDir]
+        out = [Command, FrameworkAbort, PluginAbort, TimeStr, RawOutput, PluginOutputDir]
         return out
 
     def GetCommandOutputFileNameAndExtension(self, InputName):
