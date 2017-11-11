@@ -115,3 +115,16 @@ class Normalizer(BaseComponent, NormalizerInterface):
                                                         name=vuln.get('name'),
                                                         service_id=service_obj.id,
                                                         )
+                    for cred in service.get('creds',[]):
+                        fields = dict(
+                                    name=cred.get('name'),
+                                    description=cred.get('description'),
+                                    username=cred.get('username'),
+                                    password=cred.get('password'),
+                                )
+                        cred_obj, created = get_or_create(self.db.session, models.Cred, fields, 
+                                                        service_id=service_obj.id,
+                                                        username=cred.get('username'),
+                                                        password=cred.get('password'),
+                                                        )
+
