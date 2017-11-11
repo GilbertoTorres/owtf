@@ -164,7 +164,10 @@ class PluginHelper(BaseComponent):
         self.timer.start_timer('FormatCommandAndOutput')
 
         try:
-            RawOutput = self.shell.shell_exec_monitor2(PluginOutputDir, Command, PluginInfo)
+            if self.config.do_normalize:
+                RawOutput = self.shell.shell_exec_monitor2(PluginOutputDir, Command, PluginInfo)
+            else:
+                RawOutput = self.shell.shell_exec_monitor(PluginOutputDir, Command, PluginInfo)
         except PluginAbortException as PartialOutput:
             RawOutput = str(PartialOutput.parameter)  # Save Partial Output
             PluginAbort = True

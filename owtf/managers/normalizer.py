@@ -5,6 +5,7 @@ owtf.db.command_register
 Component to handle data storage and search of all commands run
 """
 
+import logging
 import json
 import hashlib
 from sqlalchemy.exc import SQLAlchemyError
@@ -43,6 +44,14 @@ class Normalizer(BaseComponent, NormalizerInterface):
     def init(self):
         pass
 
+    def found_log(self, obj, created):
+        if created:
+            condition = "new"
+        else:
+            condition = "existing"
+        logging.info("%10s %s found!", condition, obj)
+
+
     @session_required
     def process(self, filename, session_id=None):
         """Adds normalized data to DB
@@ -69,6 +78,8 @@ class Normalizer(BaseComponent, NormalizerInterface):
                                                 os=host.get('os'),
                                                 session_id=session
                                                 )
+            self.found_log(host_obj, created)
+
 
             for iface in host.get('interfaces'):
 
@@ -87,6 +98,7 @@ class Normalizer(BaseComponent, NormalizerInterface):
                                                 mac=iface.get('mac'),
                                                 host_id=host_obj.id
                                                 )
+                self.found_log(iface_obj, created)
 
                 for service in iface.get('services',[]):
                     fields = dict(
@@ -102,6 +114,7 @@ class Normalizer(BaseComponent, NormalizerInterface):
                                                     version=service.get('version'),
                                                     iface_id=iface_obj.id,
                                                     )
+                    self.found_log(service_obj, created)
 
                     for vuln in service.get('vulns',[]):
                         fields = dict(
@@ -115,6 +128,8 @@ class Normalizer(BaseComponent, NormalizerInterface):
                                                         name=vuln.get('name'),
                                                         service_id=service_obj.id,
                                                         )
+                        self.found_log(vuln_obj, created)
+                        
                     for cred in service.get('creds',[]):
                         fields = dict(
                                     name=cred.get('name'),
@@ -127,4 +142,5 @@ class Normalizer(BaseComponent, NormalizerInterface):
                                                         username=cred.get('username'),
                                                         password=cred.get('password'),
                                                         )
+                        self.found_log(cred_obj, created)
 

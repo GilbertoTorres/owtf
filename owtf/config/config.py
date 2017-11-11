@@ -23,7 +23,7 @@ from owtf.dependency_management.interfaces import ConfigInterface
 from owtf.lib.exceptions import PluginAbortException, DBIntegrityException, UnresolvableTargetException
 from owtf.lib.general import cprint
 from owtf.managers import target as target_manager
-from owtf.utils import is_internal_ip, directory_access, FileOperations
+from owtf.utils import is_internal_ip, directory_access, FileOperations, which
 
 
 REPLACEMENT_DELIMITER = "@@@"
@@ -72,6 +72,7 @@ class Config(BaseComponent, ConfigInterface):
         self.initialize_attributes()
         self.load_config_from_file(self.framework_config_file_path())
 
+
     def init(self):
         """Initialize the option resources."""
         self.resource = self.get_component("resource")
@@ -79,6 +80,12 @@ class Config(BaseComponent, ConfigInterface):
         self.target = self.get_component("target")
         self.db_plugin = self.get_component("db_plugin")
         self.worklist_manager = self.get_component("worklist_manager")
+        self.do_normalize = which('unisecbarber') is not None
+        if self.do_normalize:
+            logging.error("Installed")
+        else:
+            logging.error("NotInstalled")
+
 
     def initialize_attributes(self):
         """Initializes the attributes for the config dictionary

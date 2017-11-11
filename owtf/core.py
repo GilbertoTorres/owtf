@@ -19,7 +19,7 @@ import psutil
 
 from owtf.dependency_management.dependency_resolver import BaseComponent
 from owtf.dependency_management.component_initialiser import ComponentInitialiser
-from owtf.utils import FileOperations, catch_io_errors, OutputCleaner
+from owtf.utils import FileOperations, catch_io_errors, OutputCleaner, which
 from owtf.api import server
 from owtf.proxy import proxy, transaction_logger
 from owtf.managers import worker
@@ -198,6 +198,7 @@ class Core(BaseComponent):
         :rtype: `bool`
         """
         self.proxy_mode = options["ProxyMode"]
+
         logging.info("Loading framework please wait..")
         ComponentInitialiser.initialisation_phase_3(options)
         self.initialise_plugin_handler_and_params(options)

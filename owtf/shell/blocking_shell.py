@@ -186,7 +186,7 @@ class Shell(BaseComponent, ShellInterface):
         )
         return proc
 
-    def shell_exec_monitor(self, command, plugin_info):
+    def shell_exec_monitor(self, path, command, plugin_info):
         """Monitor shell command execution
 
         :param command: Command to run
@@ -196,7 +196,9 @@ class Shell(BaseComponent, ShellInterface):
         :return: Scrubbed output from the command
         :rtype: `str`
         """
-        command = self.get_modified_shell_cmd(command)
+
+        # command = self.get_modified_shell_cmd(command)
+        command = self.replace_dyn_vars(command)
         cmd_info = self.start_cmd(command, command)
         target, can_run = self.can_run_cmd(cmd_info)
         if not can_run:
@@ -251,7 +253,7 @@ class Shell(BaseComponent, ShellInterface):
         :return: Scrubbed output from the command
         :rtype: `str`
         """
-        self.replace_dyn_vars(command)
+        command = self.replace_dyn_vars(command)
         cmd_info = self.start_cmd(command, command)
         target, can_run = self.can_run_cmd(cmd_info)
         if not can_run:

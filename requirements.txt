@@ -8,7 +8,7 @@ cookies==2.2.1
 dnspython==1.15.0
 hrt==0.1.0
 # Here till they upload a Python3 compatible version of the library
-ipaddress==1.0.18
+-e git+https://github.com/google/ipaddr-py#egg=ipaddr
 Markdown==2.6.9
 ndg-httpsclient==0.4.2
 pyasn1==0.3.2
@@ -24,4 +24,3 @@ six==1.10.0
 selenium==3.4.3
 SQLAlchemy==1.1.13
 tornado==4.5.2
--e git+https://github.com/csk/unisecbarber#egg=unisecbarber

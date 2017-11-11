@@ -320,6 +320,12 @@ class Mapping(Base):
 class Host(Base):
     __tablename__ = 'hosts'
 
+    def __str__(self):
+        _id = '(none)'
+        if self.id:
+            _id = self.id
+        return "%s _id: %s_: %s" % ("Host", _id, self.name)
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     uid = Column(String)
     name = Column(String)
@@ -332,6 +338,12 @@ class Host(Base):
 
 class Iface(Base):
     __tablename__ = 'ifaces'
+
+    def __str__(self):
+        _id = '(none)'
+        if self.id:
+            _id = self.id
+        return "%s _id: %s_: %s" % ("Iface", _id, self.name)
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     uid = Column(String)
@@ -357,6 +369,12 @@ class Iface(Base):
 class Service(Base):
     __tablename__ = 'services'
 
+    def __str__(self):
+        _id = '(none)'
+        if self.id:
+            _id = self.id
+        return "%s _id: %s_: %s" % ("Service", _id, self.name)
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     uid = Column(String)
 
@@ -375,6 +393,12 @@ class Service(Base):
 class Cred(Base):
     __tablename__ = 'creds'
 
+    def __str__(self):
+        _id = '(none)'
+        if self.id:
+            _id = self.id
+        return "%s _id: %s_: %s" % ("Cred", _id, self.username + ":" + self.passord)
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     uid = Column(String)
 
@@ -390,6 +414,12 @@ class Cred(Base):
 
 class Vuln(Base):
     __tablename__ = 'vulns'
+
+    def __str__(self):
+        _id = '(none)'
+        if self.id:
+            _id = self.id
+        return "%s _id: %s_: %s" % ("Vuln", _id, self.name)
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     uid = Column(String)
@@ -426,6 +456,13 @@ class VulnWeb(Vuln):
 
 class Note(Base):
     __tablename__ = 'event'
+
+    def __str__(self):
+        _id = '(none)'
+        if self.id:
+            _id = self.id
+        return "%s _id: %s_: %s" % ("Note", _id, self.name)
+
     id = Column(Integer, primary_key=True, autoincrement=True)
 
     # This is used to discriminate between the linked tables.
