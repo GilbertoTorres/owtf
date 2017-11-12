@@ -15,6 +15,7 @@ from owtf.dependency_management.interfaces import ShellInterface
 from owtf.lib.general import *
 from sqlalchemy.exc import SQLAlchemyError
 
+from owtf.utils import hash_for_cmd
 
 class Shell(BaseComponent, ShellInterface):
 
@@ -253,6 +254,8 @@ class Shell(BaseComponent, ShellInterface):
         :return: Scrubbed output from the command
         :rtype: `str`
         """
+        cmd_hsh = hash_for_cmd(command)
+
         command = self.replace_dyn_vars(command)
         cmd_info = self.start_cmd(command, command)
         target, can_run = self.can_run_cmd(cmd_info)
@@ -274,7 +277,7 @@ class Shell(BaseComponent, ShellInterface):
 
         proc = None
         try:
-            usb_cmd = "unisecbarber -m cmd -o %s -- %s" % (self.config.get_val("NORMALIZED_FILE"), command)
+            usb_cmd = "unisecbarber -m cmd -o %s.json -- %s" % (cmd_hsh, command)
             proc = self.create_subprocess2(usb_cmd, path)
             logging.warn("Running '"  + usb_cmd + "' ...")
             while True:

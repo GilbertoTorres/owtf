@@ -16,7 +16,7 @@ from tornado.template import Template
 from owtf.dependency_management.dependency_resolver import BaseComponent
 from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException
 from owtf.lib.general import *
-from owtf.utils import FileOperations
+from owtf.utils import FileOperations, hash_for_cmd
 
 
 PLUGIN_OUTPUT = {"type": None, "output": None}  # This will be json encoded and stored in db as string
@@ -163,6 +163,7 @@ class PluginHelper(BaseComponent):
             PluginOutputDir = self.InitPluginOutputDir(PluginInfo)
         self.timer.start_timer('FormatCommandAndOutput')
 
+        cmd_hsh = hash_for_cmd(Command)
         try:
             if self.config.do_normalize:
                 RawOutput = self.shell.shell_exec_monitor2(PluginOutputDir, Command, PluginInfo)
@@ -175,9 +176,8 @@ class PluginHelper(BaseComponent):
             RawOutput = str(PartialOutput.parameter)  # Save Partial Output
             FrameworkAbort = True
 
-        _norm_file = os.path.join(PluginOutputDir, self.config.get_val("NORMALIZED_FILE"))
-        if os.path.isfile(_norm_file):
-            self.normalizer.process(_norm_file)
+        if os.path.isfile("%s.json" % cmd_hsh):
+            self.normalizer.process("%s.json" % cmd_hsh)
 
         TimeStr = self.timer.get_elapsed_time_as_str('FormatCommandAndOutput')
         logging.info("Time=%s", TimeStr)

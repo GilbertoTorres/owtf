@@ -464,6 +464,9 @@ class Note(Base):
         return "%s _id: %s_: %s" % ("Note", _id, self.name)
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String)
+    description = Column(String, nullable=True)
+    text = Column(String, nullable=True)
 
     # This is used to discriminate between the linked tables.
     object_type = Column(String(255))

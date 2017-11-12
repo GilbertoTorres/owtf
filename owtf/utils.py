@@ -9,12 +9,12 @@ import shutil
 import codecs
 import logging
 import tempfile
+import hashlib
 
 from ipaddr import IPAddress
 
 from owtf.dependency_management.dependency_resolver import ServiceLocator
 from owtf.lib.general import wipe_bad_chars
-
 
 class OutputCleaner():
     """General functions which process output"""
@@ -183,3 +183,6 @@ def which(program):
                 return exe_file
 
     return None
+
+def hash_for_cmd(cmd):
+    return hashlib.md5(cmd)

@@ -80,6 +80,18 @@ class Normalizer(BaseComponent, NormalizerInterface):
                                                 )
             self.found_log(host_obj, created)
 
+            for note in host.get('notes',[]):
+                fields = dict(
+                            name=note.get('name'),
+                            description=note.get('description'),
+                            text=note.get('text'),
+                        )
+                note_obj, created = get_or_create(self.db.session, models.Note, fields, 
+                                                object=host_obj,
+                                                text=note.get('text'),
+                                                )
+                self.found_log(note_obj, created)
+
 
             for iface in host.get('interfaces'):
 
@@ -96,9 +108,21 @@ class Normalizer(BaseComponent, NormalizerInterface):
                             )
                 iface_obj, created = get_or_create(self.db.session, models.Iface, fields, 
                                                 mac=iface.get('mac'),
-                                                host_id=host_obj.id
+                                                host=host_obj
                                                 )
                 self.found_log(iface_obj, created)
+
+                for note in iface.get('notes',[]):
+                    fields = dict(
+                                name=note.get('name'),
+                                description=note.get('description'),
+                                text=note.get('text'),
+                            )
+                    note_obj, created = get_or_create(self.db.session, models.Note, fields, 
+                                                    object=ifacet_obj,
+                                                    text=note.get('text'),
+                                                    )
+                    self.found_log(note_obj, created)
 
                 for service in iface.get('services',[]):
                     fields = dict(
@@ -112,9 +136,22 @@ class Normalizer(BaseComponent, NormalizerInterface):
                     service_obj, created = get_or_create(self.db.session, models.Service, fields, 
                                                     name=service.get('name'),
                                                     version=service.get('version'),
-                                                    iface_id=iface_obj.id,
+                                                    iface=iface_obj,
                                                     )
                     self.found_log(service_obj, created)
+
+                    
+                    for note in service.get('notes',[]):
+                        fields = dict(
+                                    name=note.get('name'),
+                                    description=note.get('description'),
+                                    text=note.get('text'),
+                                )
+                        note_obj, created = get_or_create(self.db.session, models.Note, fields, 
+                                                        object=service_obj,
+                                                        text=note.get('text'),
+                                                        )
+                        self.found_log(note_obj, created)
 
                     for vuln in service.get('vulns',[]):
                         fields = dict(
@@ -126,7 +163,7 @@ class Normalizer(BaseComponent, NormalizerInterface):
                                 )
                         vuln_obj, created = get_or_create(self.db.session, models.Vuln, fields, 
                                                         name=vuln.get('name'),
-                                                        service_id=service_obj.id,
+                                                        service=service_obj,
                                                         )
                         self.found_log(vuln_obj, created)
                         
@@ -138,7 +175,7 @@ class Normalizer(BaseComponent, NormalizerInterface):
                                     password=cred.get('password'),
                                 )
                         cred_obj, created = get_or_create(self.db.session, models.Cred, fields, 
-                                                        service_id=service_obj.id,
+                                                        service=service_obj,
                                                         username=cred.get('username'),
                                                         password=cred.get('password'),
                                                         )
