@@ -156,9 +156,6 @@ class PluginOutput(Base):
     plugin = relationship("Plugin",  backref=backref('outputs', uselist=True))
     # There is a column named plugin which is caused by backref from the plugin class
     id = Column(Integer, primary_key=True)
-    plugin_code = Column(String)  # OWTF Code
-    plugin_group = Column(String)
-    plugin_type = Column(String)
     date_time = Column(DateTime, default=datetime.datetime.now())
     start_time = Column(DateTime)
     end_time = Column(DateTime)

@@ -169,12 +169,12 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         :rtype: `str`
         """
         # Organise results by OWASP Test type and then active, passive, semi_passive
-        if ((plugin.plugin_group == 'web') or (plugin.plugin_group == 'network')):
+        if ((plugin.plugin.group == 'web') or (plugin.plugin.group == 'network')):
             return os.path.join(self.target.get_path('partial_url_output_path'),
-                                wipe_bad_chars(plugin.plugin.title), plugin.plugin_type)
-        elif plugin.plugin_group == 'auxiliary':
+                                wipe_bad_chars(plugin.plugin.title), plugin.plugin.type)
+        elif plugin.plugin.group == 'auxiliary':
             return os.path.join(self.config.get_val('AUX_OUTPUT_PATH'), wipe_bad_chars(plugin.plugin.title),
-                                plugin.plugin_type)
+                                plugin.plugin.type)
 
     def requests_possible(self):
         """Check if requests are possible

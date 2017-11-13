@@ -8,13 +8,15 @@ import os
 import json
 
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import and_
+
 
 from owtf.dependency_management.dependency_resolver import BaseComponent
 from owtf.dependency_management.interfaces import PluginOutputInterface
 from owtf.managers.target import target_required
 from owtf.managers.session import session_required
 from owtf.lib.exceptions import InvalidParameterType
-from owtf.db.models import PluginOutput, Work, Target
+from owtf.db.models import Plugin, PluginOutput, Work, Target
 from owtf.utils import FileOperations
 
 
@@ -134,29 +136,29 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         :return:
         :rtype:
         """
-        query = self.db.session.query(PluginOutput).filter_by(target_id=target_id)
+        query = self.db.session.query(PluginOutput).join(Plugin).filter(Plugin.target_id == target_id)
         if filter_data.get("target_id", None):
-            query.filter_by(target_id=filter_data["target_id"])
+            query.filter(Plugin.target_id == filter_data["target_id"])
         if filter_data.get("plugin_key", None):
             if isinstance(filter_data.get("plugin_key"), str):
-                query = query.filter_by(plugin_key=filter_data["plugin_key"])
+                query = query.filter(Plugin.key == filter_data["plugin_key"])
             if isinstance(filter_data.get("plugin_key"), list):
-                query = query.filter(PluginOutput.plugin_key.in_(filter_data["plugin_key"]))
+                query = query.filter(Plugin.key.in_(filter_data["plugin_key"]))
         if filter_data.get("plugin_type", None):
             if isinstance(filter_data.get("plugin_type"), str):
-                query = query.filter_by(plugin_type=filter_data["plugin_type"])
+                query = query.filter(Plugin.type == filter_data["plugin_type"])
             if isinstance(filter_data.get("plugin_type"), list):
-                query = query.filter(PluginOutput.plugin_type.in_(filter_data["plugin_type"]))
+                query = query.filter(Plugin.type.in_(filter_data["plugin_type"]))
         if filter_data.get("plugin_group", None):
             if isinstance(filter_data.get("plugin_group"), str):
-                query = query.filter_by(plugin_group=filter_data["plugin_group"])
+                query = query.filter(Plugin.group == filter_data["plugin_group"])
             if isinstance(filter_data.get("plugin_group"), list):
-                query = query.filter(PluginOutput.plugin_group.in_(filter_data["plugin_group"]))
+                query = query.filter(Plugin.group.in_(filter_data["plugin_group"]))
         if filter_data.get("plugin_code", None):
             if isinstance(filter_data.get("plugin_code"), str):
-                query = query.filter_by(plugin_code=filter_data["plugin_code"])
+                query = query.filter(Plugin.code == filter_data["plugin_code"])
             if isinstance(filter_data.get("plugin_code"), list):
-                query = query.filter(PluginOutput.plugin_code.in_(filter_data["plugin_code"]))
+                query = query.filter(Plugin.code.in_(filter_data["plugin_code"]))
         if filter_data.get("status", None):
             if isinstance(filter_data.get("status"), str):
                 query = query.filter_by(status=filter_data["status"])
@@ -306,11 +308,11 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         :return: True if already ran
         :rtype: `bool`
         """
-        plugin_output_count = self.db.session.query(PluginOutput).filter_by(
-            target_id=target_id,
-            plugin_code=plugin_info["code"],
-            plugin_type=plugin_info["type"],
-            plugin_group=plugin_info["group"]).count()
+        plugin_output_count = self.db.session.query(PluginOutput).join(Plugin).filter(and_(
+            PluginOutput.target_id == target_id,
+            Plugin.code == plugin_info["code"],
+            Plugin.type == plugin_info["type"],
+            Plugin.group == plugin_info["group"])).count()
         return plugin_output_count > 0  # This is nothing but a "None" returned
 
     @target_required
@@ -327,12 +329,8 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         :rtype: None
         """
 
-        instance = self.db.session.query(PluginOutput).filter_by(plugin_key=plugin["key"], target_id=target_id).first()
+        instance = self.db.session.query(PluginOutput).join(Plugin).filter(and_(Plugin.key == plugin["key"], PluginOutput.target_id == target_id)).first()
         if instance:
-            instance.plugin_key=plugin["key"],
-            instance.plugin_code=plugin["code"],
-            instance.plugin_group=plugin["group"],
-            instance.plugin_type=plugin["type"],
             instance.output=json.dumps(output),
             instance.start_time=plugin["start"],
             instance.end_time=plugin["end"],
@@ -342,10 +340,6 @@ class POutputDB(BaseComponent, PluginOutputInterface):
             instance.owtf_rank=plugin['owtf_rank']
         else:
             self.db.session.merge(PluginOutput(
-                plugin_key=plugin["key"],
-                plugin_code=plugin["code"],
-                plugin_group=plugin["group"],
-                plugin_type=plugin["type"],
                 output=json.dumps(output),
                 start_time=plugin["start"],
                 end_time=plugin["end"],
@@ -375,17 +369,13 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         :return: None
         :rtype: None
         """
-        query = self.db.session.query(PluginOutput).filter_by(target_id=target_id, plugin_key=key)
+        query = self.db.session.query(PluginOutput).join(Plugin).filter(and_(Plugin.key == key, PluginOutput.target_id == target_id))
         # query = self.db.session.query(PluginOutput).filter_by(plugin_key=key)
         instance = query.first()
         if instance:
             return instance
 
         plugin_output = PluginOutput(
-            plugin_key=key,
-            plugin_code=code,
-            plugin_group=group,
-            plugin_type=plugin_type,
             target_id=target_id,
             )
         self.db.session.add(plugin_output)
@@ -413,10 +403,6 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         """
         instance = self.db.session.query(PluginOutput).filter_by(plugin_key=plugin["key"], target_id=target_id).first()
         if instance:
-            instance.plugin_key=plugin["key"],
-            instance.plugin_code=plugin["code"],
-            instance.plugin_group=plugin["group"],
-            instance.plugin_type=plugin["type"],
             instance.output=json.dumps(output),
             instance.error=message,
             instance.start_time=plugin["start"],
@@ -427,10 +413,6 @@ class POutputDB(BaseComponent, PluginOutputInterface):
             instance.owtf_rank=plugin['owtf_rank']
         else:
             self.db.session.merge(PluginOutput(
-                plugin_key=plugin["key"],
-                plugin_code=plugin["code"],
-                plugin_group=plugin["group"],
-                plugin_type=plugin["type"],
                 output=json.dumps(output),
                 error=message,
                 start_time=plugin["start"],
