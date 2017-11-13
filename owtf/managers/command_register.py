@@ -36,7 +36,7 @@ class CommandRegister(BaseComponent, CommandRegisterInterface):
         :return: None
         :rtype: None
         """
-        self.db.session.merge(models.Command(
+        cmd = models.Command(
             start_time=command['Start'],
             end_time=command['End'],
             success=command['Success'],
@@ -44,12 +44,14 @@ class CommandRegister(BaseComponent, CommandRegisterInterface):
             plugin_key=command['PluginKey'],
             modified_command=command['ModifiedCommand'].strip(),
             original_command=command['OriginalCommand'].strip()
-        ))
+        )
+        self.db.session.merge(cmd)
         try:
             self.db.session.commit()
         except SQLAlchemyError as e:
             self.db.session.rollback()
             raise e
+        return cmd
 
     def del_command(self, command):
         """Delete the command from the DB

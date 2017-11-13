@@ -185,4 +185,4 @@ def which(program):
     return None
 
 def hash_for_cmd(cmd):
-    return hashlib.md5(cmd)
+    return hashlib.md5(cmd).hexdigest()

@@ -163,10 +163,11 @@ class PluginHelper(BaseComponent):
             PluginOutputDir = self.InitPluginOutputDir(PluginInfo)
         self.timer.start_timer('FormatCommandAndOutput')
 
+        cmd = None
         cmd_hsh = hash_for_cmd(Command)
         try:
             if self.config.do_normalize:
-                RawOutput = self.shell.shell_exec_monitor2(PluginOutputDir, Command, PluginInfo)
+                cmd, RawOutput = self.shell.shell_exec_monitor2(PluginOutputDir, Command, PluginInfo)
             else:
                 RawOutput = self.shell.shell_exec_monitor(PluginOutputDir, Command, PluginInfo)
         except PluginAbortException as PartialOutput:
@@ -176,8 +177,11 @@ class PluginHelper(BaseComponent):
             RawOutput = str(PartialOutput.parameter)  # Save Partial Output
             FrameworkAbort = True
 
-        if os.path.isfile("%s.json" % cmd_hsh):
-            self.normalizer.process("%s.json" % cmd_hsh)
+        if self.config.do_normalize:
+            norm_file = os.path.join(PluginOutputDir, "%s.json" % cmd_hsh)
+            if os.path.isfile(norm_file):
+                self.normalizer.process(cmd, norm_file)
+
 
         TimeStr = self.timer.get_elapsed_time_as_str('FormatCommandAndOutput')
         logging.info("Time=%s", TimeStr)

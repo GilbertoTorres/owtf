@@ -52,8 +52,10 @@ class Normalizer(BaseComponent, NormalizerInterface):
         logging.info("%10s %s found!", condition, obj)
 
 
+
+
     @session_required
-    def process(self, filename, session_id=None):
+    def process(self, cmd, filename, session_id=None):
         """Adds normalized data to DB
 
         :param command: Filename with json normalized output
@@ -61,6 +63,10 @@ class Normalizer(BaseComponent, NormalizerInterface):
         :return: None
         :rtype: None
         """
+
+        # hack: we have to get a new instance so it works. If not, we get an Exception:
+        # 'This Session's transaction has been rolled back due to a previous exception during flush [...]'
+        new_cmd_instance = register_entry = self.db.session.query(models.Command).get(cmd.original_command)
 
         f = open(filename, "r")
         jcontent = f.read()
@@ -78,6 +84,7 @@ class Normalizer(BaseComponent, NormalizerInterface):
                                                 os=host.get('os'),
                                                 session_id=session
                                                 )
+            host_obj.commands.append(new_cmd_instance)
             self.found_log(host_obj, created)
 
             for note in host.get('notes',[]):
@@ -90,6 +97,7 @@ class Normalizer(BaseComponent, NormalizerInterface):
                                                 object=host_obj,
                                                 text=note.get('text'),
                                                 )
+                note_obj.commands.append(new_cmd_instance)
                 self.found_log(note_obj, created)
 
 
@@ -110,6 +118,7 @@ class Normalizer(BaseComponent, NormalizerInterface):
                                                 mac=iface.get('mac'),
                                                 host=host_obj
                                                 )
+                iface_obj.commands.append(new_cmd_instance)
                 self.found_log(iface_obj, created)
 
                 for note in iface.get('notes',[]):
@@ -122,6 +131,7 @@ class Normalizer(BaseComponent, NormalizerInterface):
                                                     object=ifacet_obj,
                                                     text=note.get('text'),
                                                     )
+                    note_obj.commands.append(new_cmd_instance)
                     self.found_log(note_obj, created)
 
                 for service in iface.get('services',[]):
@@ -138,6 +148,7 @@ class Normalizer(BaseComponent, NormalizerInterface):
                                                     version=service.get('version'),
                                                     iface=iface_obj,
                                                     )
+                    service_obj.commands.append(new_cmd_instance)
                     self.found_log(service_obj, created)
 
                     
@@ -151,6 +162,7 @@ class Normalizer(BaseComponent, NormalizerInterface):
                                                         object=service_obj,
                                                         text=note.get('text'),
                                                         )
+                        note_obj.commands.append(new_cmd_instance)
                         self.found_log(note_obj, created)
 
                     for vuln in service.get('vulns',[]):
@@ -165,6 +177,7 @@ class Normalizer(BaseComponent, NormalizerInterface):
                                                         name=vuln.get('name'),
                                                         service=service_obj,
                                                         )
+                        vuln_obj.commands.append(new_cmd_instance)
                         self.found_log(vuln_obj, created)
                         
                     for cred in service.get('creds',[]):
@@ -179,5 +192,6 @@ class Normalizer(BaseComponent, NormalizerInterface):
                                                         username=cred.get('username'),
                                                         password=cred.get('password'),
                                                         )
+                        cred_obj.commands.append(new_cmd_instance)
                         self.found_log(cred_obj, created)
 

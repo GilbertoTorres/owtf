@@ -176,6 +176,36 @@ class PluginOutput(Base):
     __table_args__ = (UniqueConstraint('plugin_key', 'target_id'),)
 
 
+cmd_host = Table('command_register_host', Base.metadata,
+    Column('command_register_id', String, ForeignKey('command_register.original_command')),
+    Column('host_id', Integer, ForeignKey('hosts.id'))
+)
+
+cmd_iface = Table('command_register_iface', Base.metadata,
+    Column('command_register_id', String, ForeignKey('command_register.original_command')),
+    Column('iface_id', Integer, ForeignKey('ifaces.id'))
+)
+
+cmd_service = Table('command_register_service', Base.metadata,
+    Column('command_register_id', String, ForeignKey('command_register.original_command')),
+    Column('service_id', Integer, ForeignKey('services.id'))
+)
+
+cmd_cred = Table('command_register_cred', Base.metadata,
+    Column('command_register_id', String, ForeignKey('command_register.original_command')),
+    Column('cred_id', Integer, ForeignKey('creds.id'))
+)
+
+cmd_vuln = Table('command_register_vuln', Base.metadata,
+    Column('command_register_id', String, ForeignKey('command_register.original_command')),
+    Column('vuln_id', Integer, ForeignKey('vulns.id'))
+)
+
+cmd_note = Table('command_register_note', Base.metadata,
+    Column('command_register_id', String, ForeignKey('command_register.original_command')),
+    Column('note_id', Integer, ForeignKey('event.id'))
+)
+
 class Command(Base):
     __tablename__ = "command_register"
 
@@ -184,8 +214,42 @@ class Command(Base):
     success = Column(Boolean, default=False)
     target_id = Column(Integer, ForeignKey("targets.id"))
     plugin_key = Column(String, ForeignKey("plugins.key"))
+
     modified_command = Column(String)
     original_command = Column(String, primary_key=True)
+
+    plugin_output_id = Column(String, ForeignKey("plugin_outputs.id"))
+    plugin_output = relationship(PluginOutput, backref=backref('commands', uselist=True))
+
+    hosts = relationship(
+        "Host",
+        secondary=cmd_host,
+        back_populates="commands")
+
+    ifaces = relationship(
+        "Iface",
+        secondary=cmd_iface,
+        back_populates="commands")
+
+    services = relationship(
+        "Service",
+        secondary=cmd_service,
+        back_populates="commands")
+
+    creds = relationship(
+        "Cred",
+        secondary=cmd_cred,
+        back_populates="commands")
+
+    vulns = relationship(
+        "Vuln",
+        secondary=cmd_vuln,
+        back_populates="commands")
+
+    notes = relationship(
+        "Note",
+        secondary=cmd_note,
+        back_populates="commands")
 
     @hybrid_property
     def run_time(self):
@@ -317,6 +381,7 @@ class Mapping(Base):
 
 # Report Enhancement
 
+
 class Host(Base):
     __tablename__ = 'hosts'
 
@@ -335,6 +400,12 @@ class Host(Base):
 
     description = Column(String, nullable=True)
     os = Column(String, nullable=True)
+
+    commands = relationship(
+        "Command",
+        secondary=cmd_host,
+        back_populates="hosts")
+
 
 class Iface(Base):
     __tablename__ = 'ifaces'
@@ -366,6 +437,12 @@ class Iface(Base):
 
     network_segment = Column(String, nullable=True)
 
+    commands = relationship(
+        "Command",
+        secondary=cmd_iface,
+        back_populates="ifaces")
+
+
 class Service(Base):
     __tablename__ = 'services'
 
@@ -390,6 +467,11 @@ class Service(Base):
     version = Column(String, nullable=True)
 
 
+    commands = relationship(
+        "Command",
+        secondary=cmd_service,
+        back_populates="services")
+
 class Cred(Base):
     __tablename__ = 'creds'
 
@@ -410,6 +492,11 @@ class Cred(Base):
 
     username = Column(String, nullable=True)
     password = Column(String, nullable=True)
+
+    commands = relationship(
+        "Command",
+        secondary=cmd_cred,
+        back_populates="creds")
 
 
 class Vuln(Base):
@@ -435,6 +522,12 @@ class Vuln(Base):
     severity = Column(String, nullable=True)
     refs = Column(String, nullable=True) # json
 
+
+    commands = relationship(
+        "Command",
+        secondary=cmd_vuln,
+        back_populates="vulns")
+
     __mapper_args__ = {
         'polymorphic_on':type,
         'polymorphic_identity':'vulns'
@@ -453,6 +546,7 @@ class VulnWeb(Vuln):
     params = Column(String, nullable=True)
     query = Column(String, nullable=True)
     attachments = Column(String, nullable=True)
+
 
 class Note(Base):
     __tablename__ = 'event'
@@ -475,3 +569,9 @@ class Note(Base):
     object_id = Column(Integer)
 
     object = generic_relationship(object_type, object_id)
+
+
+    commands = relationship(
+        "Command",
+        secondary=cmd_note,
+        back_populates="notes")

@@ -5,6 +5,7 @@ owtf.dependency_management.component_initializer
 Implements 3 phased component initialization process
 """
 
+import sys
 from owtf.api.reporter import Reporter
 from owtf.config.config import Config
 from owtf.db.database import DB
@@ -57,6 +58,7 @@ class ComponentInitialiser():
         try:
             OWTFSessionDB()
         except:
+            print("Unexpected error:", sys.exc_info()[0])
             raise DatabaseNotRunningException()
         WorklistManager()
         ConfigDB()

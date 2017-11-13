@@ -69,7 +69,7 @@ class Shell(BaseComponent, ShellInterface):
 
         :param cmd_info: Command info dict
         :type cmd_info: `dict`
-        :param was_cancelled: If cancelled by user, then true
+       cmd,  :param was_cancelled: If cancelled by user, then true
         :type was_cancelled: `bool`
         :param plugin_info: Plugin context information
         :type plugin_info: `dict`
@@ -84,7 +84,7 @@ class Shell(BaseComponent, ShellInterface):
         cmd_info['RunTime'] = self.timer.get_elapsed_time_as_str(self.command_time_offset)
         cmd_info['Target'] = self.target.get_target_id()
         cmd_info['PluginKey'] = plugin_info["key"]
-        self.command_register.add_command(cmd_info)
+        return self.command_register.add_command(cmd_info)
 
     def escape_shell_path(self, text):
         """Escape shell path characters in the text
@@ -238,7 +238,7 @@ class Shell(BaseComponent, ShellInterface):
             output += self.error_handler.user_abort('Command', output)  # Identify as Command Level abort
         finally:
             try:
-                self.finish_cmd(cmd_info, cancelled, plugin_info)
+                cmd = self.finish_cmd(cmd_info, cancelled, plugin_info)
             except SQLAlchemyError as e:
                 logging.error("Exception occurred while during database transaction : \n%s", str(e))
                 output += str(e)
@@ -305,12 +305,12 @@ class Shell(BaseComponent, ShellInterface):
         if proc.returncode == 0:
             logging.warn("Unisecbarber compatible!")
             try:
-                self.finish_cmd(cmd_info, cancelled, plugin_info)
+                cmd = self.finish_cmd(cmd_info, cancelled, plugin_info)
             except SQLAlchemyError as e:
                 logging.error("Exception occurred while during database transaction : \n%s", str(e))
                 output += str(e)
             finally:
-                return scrub_output(output)
+                return cmd, scrub_output(output)
                 
         logging.warn("Executing w/o unisecbarber ...")
 
@@ -338,12 +338,12 @@ class Shell(BaseComponent, ShellInterface):
             output += self.error_handler.user_abort('Command', output)  # Identify as Command Level abort
         finally:
             try:
-                self.finish_cmd(cmd_info, cancelled, plugin_info)
+                cmd = self.finish_cmd(cmd_info, cancelled, plugin_info)
             except SQLAlchemyError as e:
                 logging.error("Exception occurred while during database transaction : \n%s", str(e))
                 output += str(e)
         proc.wait()
-        return scrub_output(output)
+        return cmd, scrub_output(output)
 
     def shell_exec(self, command, **kwds):
         """This is mostly used for internal framework commands
