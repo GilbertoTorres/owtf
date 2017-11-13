@@ -43,9 +43,11 @@ class CommandRegister(BaseComponent, CommandRegisterInterface):
             target_id=command['Target'],
             plugin_key=command['PluginKey'],
             modified_command=command['ModifiedCommand'].strip(),
-            original_command=command['OriginalCommand'].strip()
+            original_command=command['OriginalCommand'].strip(),
+            plugin_output_id=command['PluginOutputId'],
+            stdout=command['Output']
         )
-        self.db.session.merge(cmd)
+        self.db.session.add(cmd)
         try:
             self.db.session.commit()
         except SQLAlchemyError as e:
@@ -61,7 +63,7 @@ class CommandRegister(BaseComponent, CommandRegisterInterface):
         :return: None
         :rtype: None
         """
-        command_obj = self.db.session.query(models.Command).get(command)
+        command_obj = self.db.session.query(models.Command).filter_by(original_command=original_command).first()
         self.db.session.delete(command_obj)
         self.db.session.commit()
 
@@ -76,7 +78,7 @@ class CommandRegister(BaseComponent, CommandRegisterInterface):
         :return: None
         :rtype: None
         """
-        register_entry = self.db.session.query(models.Command).get(original_command)
+        register_entry = self.db.session.query(models.Command).filter_by(original_command=original_command).first()
         if register_entry:
             # If the command was completed and the plugin output to which it
             # is referring exists

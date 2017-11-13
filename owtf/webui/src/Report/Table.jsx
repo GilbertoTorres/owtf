@@ -66,6 +66,8 @@ class Table extends React.PureComponent {
         var group = obj['plugin_group'];
         var type = obj['plugin_type'];
         var code = obj['plugin_code'];
+        var commands = obj['commands'];
+
         var deletePluginOutput = this.context.deletePluginOutput;
         var postToWorkList = this.context.postToWorkList;
 
@@ -164,14 +166,45 @@ class Table extends React.PureComponent {
                     </tr>
                     <tr>
                         <th colSpan="6">
-                            MORE DETAILS
+                            COMMANDS
                         </th>
                     </tr>
                     <tr>
+                        <th colSpan="6">
+                            {commands.map(function(cmd, i){
+                                return (
+                                    <div>
+                                        <p>
+                                            <ol>
+                                                <li><b>start_time:</b> {cmd.start_time}</li>
+                                                <li><b>end_time:</b> {cmd.end_time}</li>
+                                            </ol>
+                                            <ol>
+                                                <li><b>hosts:</b> {cmd.hosts.length}</li>
+                                                <li><b>ifaces:</b> {cmd.ifaces.length}</li>
+                                                <li><b>services:</b> {cmd.services.length}</li>
+                                                <li><b>creds:</b> {cmd.creds.length}</li>
+                                                <li><b>vulns:</b> {cmd.vulns.length}</li>
+                                                <li><b>notes:</b> {cmd.notes.length}</li>
+                                            </ol>
+                                        </p>
+                                        <pre>{cmd.original_command}</pre>
+                                        <pre>{cmd.small_stdout}</pre>
+                                    </div>
+                                    );
+                            })}
+                        </th>
+                    </tr>
+                    <tr>
+                        <th colSpan="6">
+                            MORE DETAILS
+                        </th>
+                    </tr>
+{/*                    <tr>
                         <td colSpan="6" dangerouslySetInnerHTML={{
                             __html: output
                         }}></td>
-                    </tr>
+                    </tr>*/}
                 </tbody>
             </table>
         );

@@ -120,7 +120,7 @@ class WorklistManager(BaseComponent):
             query = query.filter(not_(models.Work.target_id.in_(in_use_target_list)))
         work_obj = query.first()
         if work_obj:
-            # First get the worker dict and then delete
+        #     # First get the worker dict and then delete
             work_dict = self._derive_work_dict(work_obj)
             self.db.session.delete(work_obj)
             self.db.session.commit()
@@ -198,7 +198,8 @@ class WorklistManager(BaseComponent):
                         # If force overwrite is true then plugin output has
                         # to be deleted first
                         if force_overwrite is True:
-                            self.plugin_output.delete_all({"plugin_key": plugin["key"]}, target_id=target["id"])
+                            # self.plugin_output.delete_all({"plugin_key": plugin["key"]}, target_id=target["id"])
+                            pass
                         work_model = models.Work(target_id=target["id"], plugin_key=plugin["key"])
                         self.db.session.add(work_model)
         self.db.session.commit()

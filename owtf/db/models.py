@@ -153,6 +153,7 @@ class PluginOutput(Base):
 
     target_id = Column(Integer, ForeignKey("targets.id"))
     plugin_key = Column(String, ForeignKey("plugins.key"))
+    plugin = relationship("Plugin",  backref=backref('outputs', uselist=True))
     # There is a column named plugin which is caused by backref from the plugin class
     id = Column(Integer, primary_key=True)
     plugin_code = Column(String)  # OWTF Code
@@ -169,45 +170,52 @@ class PluginOutput(Base):
     owtf_rank = Column(Integer, nullable=True, default=-1)
     output_path = Column(String, nullable=True)
 
+
     @hybrid_property
     def run_time(self):
-        return self.end_time - self.start_time
+        try:
+            return self.end_time - self.start_time
+        except TypeError:
+            return datetime.timedelta(0)
 
     __table_args__ = (UniqueConstraint('plugin_key', 'target_id'),)
 
 
 cmd_host = Table('command_register_host', Base.metadata,
-    Column('command_register_id', String, ForeignKey('command_register.original_command')),
+    Column('command_register_id', Integer, ForeignKey('command_register.id')),
     Column('host_id', Integer, ForeignKey('hosts.id'))
 )
 
 cmd_iface = Table('command_register_iface', Base.metadata,
-    Column('command_register_id', String, ForeignKey('command_register.original_command')),
+    Column('command_register_id', Integer, ForeignKey('command_register.id')),
     Column('iface_id', Integer, ForeignKey('ifaces.id'))
 )
 
 cmd_service = Table('command_register_service', Base.metadata,
-    Column('command_register_id', String, ForeignKey('command_register.original_command')),
+    Column('command_register_id', Integer, ForeignKey('command_register.id')),
     Column('service_id', Integer, ForeignKey('services.id'))
 )
 
 cmd_cred = Table('command_register_cred', Base.metadata,
-    Column('command_register_id', String, ForeignKey('command_register.original_command')),
+    Column('command_register_id', Integer, ForeignKey('command_register.id')),
     Column('cred_id', Integer, ForeignKey('creds.id'))
 )
 
 cmd_vuln = Table('command_register_vuln', Base.metadata,
-    Column('command_register_id', String, ForeignKey('command_register.original_command')),
+    Column('command_register_id', Integer, ForeignKey('command_register.id')),
     Column('vuln_id', Integer, ForeignKey('vulns.id'))
 )
 
 cmd_note = Table('command_register_note', Base.metadata,
-    Column('command_register_id', String, ForeignKey('command_register.original_command')),
+    Column('command_register_id', Integer, ForeignKey('command_register.id')),
     Column('note_id', Integer, ForeignKey('event.id'))
 )
 
 class Command(Base):
     __tablename__ = "command_register"
+
+
+    id = Column(Integer, primary_key=True)
 
     start_time = Column(DateTime)
     end_time = Column(DateTime)
@@ -216,10 +224,14 @@ class Command(Base):
     plugin_key = Column(String, ForeignKey("plugins.key"))
 
     modified_command = Column(String)
-    original_command = Column(String, primary_key=True)
+    original_command = Column(String)
 
-    plugin_output_id = Column(String, ForeignKey("plugin_outputs.id"))
+    plugin_output_id = Column(Integer, ForeignKey("plugin_outputs.id"))
     plugin_output = relationship(PluginOutput, backref=backref('commands', uselist=True))
+    
+    stdout = Column(String)
+    stderr = Column(String)
+    files = Column(String)
 
     hosts = relationship(
         "Host",
@@ -251,9 +263,42 @@ class Command(Base):
         secondary=cmd_note,
         back_populates="commands")
 
+    def to_dict(self):
+        
+
+        small_stdout = ""
+        for idx, line in enumerate(self.stdout.splitlines()):
+            if idx == 15:
+                break;
+            small_stdout += line + "\n"
+
+
+        return dict(
+            start_time= (self.start_time.isoformat() if self.start_time else None),
+            end_time=(self.end_time.isoformat() if self.start_time else None),
+            success=self.success,
+            modified_command=self.modified_command,
+            original_command=self.original_command,
+            plugin_output_id=self.plugin_output_id,
+            small_stdout=small_stdout,
+            stderr=self.stderr,
+            files=self.files,
+            hosts=[host.to_dict() for host in self.hosts],
+            ifaces=[iface.to_dict() for iface in self.ifaces],
+            services=[service.to_dict() for service in self.services],
+            creds=[cred.to_dict() for cred in self.creds],
+            vulns=[vuln.to_dict() for vuln in self.vulns],
+            notes=[note.to_dict() for note in self.notes],
+            )
+
     @hybrid_property
     def run_time(self):
-        return self.end_time - self.start_time
+        try:
+            return self.end_time - self.start_time
+        except TypeError:
+            return datetime.timedelta(0)
+
+            
 
 
 class Error(Base):
@@ -319,7 +364,7 @@ class Plugin(Base):
     file = Column(String)
     attr = Column(String, nullable=True)
     works = relationship("Work", backref="plugin", cascade="delete")
-    outputs = relationship("PluginOutput", backref="plugin")
+    # outputs = relationship("PluginOutput", backref="plugin")
 
     def __repr__(self):
         return "<Plugin (code='%s', group='%s', type='%s')>" % (self.code, self.group, self.type)
@@ -363,9 +408,9 @@ class Work(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     target_id = Column(Integer, ForeignKey("targets.id"))
     plugin_key = Column(String, ForeignKey("plugins.key"))
-    active = Column(Boolean, default=True)
-    # Columns plugin and target are created using backrefs
 
+    active = Column(Boolean, default=True)
+    
     __table_args__ = (UniqueConstraint('target_id', 'plugin_key'),)
 
     def __repr__(self):
@@ -406,6 +451,11 @@ class Host(Base):
         secondary=cmd_host,
         back_populates="hosts")
 
+    def to_dict(self):
+        return dict(
+            name=self.name,
+            os=self.os,
+            )
 
 class Iface(Base):
     __tablename__ = 'ifaces'
@@ -442,6 +492,12 @@ class Iface(Base):
         secondary=cmd_iface,
         back_populates="ifaces")
 
+    def to_dict(self):
+        return dict(
+            name=self.name,
+            mac=self.mac,
+            )
+
 
 class Service(Base):
     __tablename__ = 'services'
@@ -472,6 +528,12 @@ class Service(Base):
         secondary=cmd_service,
         back_populates="services")
 
+    def to_dict(self):
+        return dict(
+            name=self.name,
+            ports=self.ports,
+            )
+
 class Cred(Base):
     __tablename__ = 'creds'
 
@@ -479,7 +541,7 @@ class Cred(Base):
         _id = '(none)'
         if self.id:
             _id = self.id
-        return "%s _id: %s_: %s" % ("Cred", _id, self.username + ":" + self.passord)
+        return "%s _id: %s_: %s" % ("Cred", _id, self.username + ":" + self.password)
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     uid = Column(String)
@@ -497,6 +559,13 @@ class Cred(Base):
         "Command",
         secondary=cmd_cred,
         back_populates="creds")
+
+    def to_dict(self):
+        return dict(
+            name=self.name,
+            username=self.username,
+            password=self.password,
+            )
 
 
 class Vuln(Base):
@@ -532,6 +601,12 @@ class Vuln(Base):
         'polymorphic_on':type,
         'polymorphic_identity':'vulns'
     }
+
+    def to_dict(self):
+        return dict(
+            name=self.name,
+            severity=self.severity,
+            )
 
 class VulnWeb(Vuln):
     __mapper_args__ = {
@@ -575,3 +650,10 @@ class Note(Base):
         "Command",
         secondary=cmd_note,
         back_populates="notes")
+
+    def to_dict(self):
+        return dict(
+            name=self.name,
+            description=self.description,
+            text=self.text,
+            )

@@ -82,7 +82,6 @@ def install_restricted_from_cfg(config_file):
     cp.read(config_file)
     for section in cp.sections():
         logging.info("[*] Installing %s" % section)
-        print "Section: " + section
         install_in_directory(os.path.expanduser(cp.get(section, "directory")), cp.get(section, "command"))
 
 

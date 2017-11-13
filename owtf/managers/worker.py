@@ -169,6 +169,7 @@ class WorkerManager(BaseComponent, WorkerManagerInterface):
                     self.workers[k]["work"] = work_to_assign
                     self.workers[k]["busy"] = True
                     self.workers[k]["start_time"] = strftime("%Y/%m/%d %H:%M:%S")
+
                 if not self.keep_working:
                     if not self.is_any_worker_busy():
                         logging.info("All jobs have been done. Exiting.")

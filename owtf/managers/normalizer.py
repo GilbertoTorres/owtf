@@ -66,13 +66,14 @@ class Normalizer(BaseComponent, NormalizerInterface):
 
         # hack: we have to get a new instance so it works. If not, we get an Exception:
         # 'This Session's transaction has been rolled back due to a previous exception during flush [...]'
-        new_cmd_instance = register_entry = self.db.session.query(models.Command).get(cmd.original_command)
+        new_cmd_instance = register_entry = self.db.session.query(models.Command).get(cmd.id)
 
         f = open(filename, "r")
         jcontent = f.read()
         f.close()
-
+        
         jobj = json.loads(jcontent)
+
 
         session = None
         if session_id and len(session_id) > 0:

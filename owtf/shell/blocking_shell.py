@@ -64,15 +64,15 @@ class Shell(BaseComponent, ShellInterface):
         }
         return commands
 
-    def finish_cmd(self, cmd_info, was_cancelled, plugin_info):
+    def finish_cmd(self, cmd_info, was_cancelled, plugin_output):
         """Finish the command run
 
         :param cmd_info: Command info dict
         :type cmd_info: `dict`
        cmd,  :param was_cancelled: If cancelled by user, then true
         :type was_cancelled: `bool`
-        :param plugin_info: Plugin context information
-        :type plugin_info: `dict`
+        :param plugin_output: Plugin context information
+        :type plugin_output: `dict`
         :return: None
         :rtype: None
         """
@@ -83,7 +83,32 @@ class Shell(BaseComponent, ShellInterface):
         cmd_info['Success'] = success
         cmd_info['RunTime'] = self.timer.get_elapsed_time_as_str(self.command_time_offset)
         cmd_info['Target'] = self.target.get_target_id()
-        cmd_info['PluginKey'] = plugin_info["key"]
+        cmd_info['PluginKey'] = plugin_output.plugin_key
+        cmd_info['PluginOutputId'] = plugin_output.id
+        return self.command_register.add_command(cmd_info)
+
+    def finish_cmd2(self, cmd_info, was_cancelled, plugin_output, output):
+        """Finish the command run
+
+        :param cmd_info: Command info dict
+        :type cmd_info: `dict`
+       cmd,  :param was_cancelled: If cancelled by user, then true
+        :type was_cancelled: `bool`
+        :param plugin_output: Plugin context information
+        :type plugin_output: `dict`
+        :return: None
+        :rtype: None
+        """
+        cmd_info['End'] = self.timer.get_end_date_time(self.command_time_offset)
+        success = True
+        if was_cancelled:
+            success = False
+        cmd_info['Success'] = success
+        cmd_info['RunTime'] = self.timer.get_elapsed_time_as_str(self.command_time_offset)
+        cmd_info['Target'] = self.target.get_target_id()
+        cmd_info['PluginKey'] = plugin_output.plugin_key
+        cmd_info['PluginOutputId'] = plugin_output.id
+        cmd_info['Output'] = output
         return self.command_register.add_command(cmd_info)
 
     def escape_shell_path(self, text):
@@ -244,13 +269,13 @@ class Shell(BaseComponent, ShellInterface):
                 output += str(e)
         return scrub_output(output)
 
-    def shell_exec_monitor2(self, path, command, plugin_info):
+    def shell_exec_monitor2(self, path, command, plugin_output):
         """Monitor shell command execution
 
         :param command: Command to run
         :type command: `str`
-        :param plugin_info: Plugin context info
-        :type plugin_info: `dict`
+        :param plugin_output: Plugin context info
+        :type plugin_output: `dict`
         :return: Scrubbed output from the command
         :rtype: `str`
         """
@@ -259,9 +284,9 @@ class Shell(BaseComponent, ShellInterface):
         command = self.replace_dyn_vars(command)
         cmd_info = self.start_cmd(command, command)
         target, can_run = self.can_run_cmd(cmd_info)
-        if not can_run:
+        if False: # not can_run:
             message = "The command was already run for target: %s" % str(target)
-            return message
+            return None, message
         logging.info("")
         logging.info("Executing :\n\n%s\n\n", command)
         logging.info("")
@@ -305,7 +330,7 @@ class Shell(BaseComponent, ShellInterface):
         if proc.returncode == 0:
             logging.warn("Unisecbarber compatible!")
             try:
-                cmd = self.finish_cmd(cmd_info, cancelled, plugin_info)
+                cmd = self.finish_cmd2(cmd_info, cancelled, plugin_output, output)
             except SQLAlchemyError as e:
                 logging.error("Exception occurred while during database transaction : \n%s", str(e))
                 output += str(e)
@@ -338,7 +363,7 @@ class Shell(BaseComponent, ShellInterface):
             output += self.error_handler.user_abort('Command', output)  # Identify as Command Level abort
         finally:
             try:
-                cmd = self.finish_cmd(cmd_info, cancelled, plugin_info)
+                cmd = self.finish_cmd2(cmd_info, cancelled, plugin_output, output)
             except SQLAlchemyError as e:
                 logging.error("Exception occurred while during database transaction : \n%s", str(e))
                 output += str(e)

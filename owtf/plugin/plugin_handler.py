@@ -6,8 +6,10 @@ The PluginHandler is in charge of running all plugins taking into account the
 chosen settings.
 """
 
+import os
 import imp
 import logging
+import json
 
 from owtf.lib.exceptions import FrameworkAbortException, PluginAbortException, UnreachableTargetException
 from owtf.lib.general import *
@@ -167,12 +169,12 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         :rtype: `str`
         """
         # Organise results by OWASP Test type and then active, passive, semi_passive
-        if ((plugin['group'] == 'web') or (plugin['group'] == 'network')):
+        if ((plugin.plugin_group == 'web') or (plugin.plugin_group == 'network')):
             return os.path.join(self.target.get_path('partial_url_output_path'),
-                                wipe_bad_chars(plugin['title']), plugin['type'])
-        elif plugin['group'] == 'auxiliary':
-            return os.path.join(self.config.get_val('AUX_OUTPUT_PATH'), wipe_bad_chars(plugin['title']),
-                                plugin['type'])
+                                wipe_bad_chars(plugin.plugin.title), plugin.plugin_type)
+        elif plugin.plugin_group == 'auxiliary':
+            return os.path.join(self.config.get_val('AUX_OUTPUT_PATH'), wipe_bad_chars(plugin.plugin.title),
+                                plugin.plugin_type)
 
     def requests_possible(self):
         """Check if requests are possible
@@ -323,7 +325,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         """
         return "%s/%s/%s" % (plugin_dir, plugin['type'], plugin['file'])  # Path to run the plugin
 
-    def run_plugin(self, plugin_dir, plugin, save_output=True):
+    def run_plugin(self, plugin_dir, plugin, plugin_output, save_output=True):
         """Run a specific plugin
 
         :param plugin_dir: path of plugin directory
@@ -337,7 +339,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         """
         plugin_path = self.get_plugin_full_path(plugin_dir, plugin)
         path, name = os.path.split(plugin_path)
-        plugin_output = self.get_module("", name, path + "/").run(plugin)
+        plugin_output = self.get_module("", name, path + "/").run(plugin_output)
         return plugin_output
 
     @staticmethod
@@ -398,6 +400,14 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         :rtype: list
 
         """
+        db = self.get_component("db")
+        plugin_output_obj = self.plugin_output.get_or_create(
+                                    plugin['key'], 
+                                    plugin['code'],
+                                    plugin['group'],
+                                    plugin['type']
+                                )
+
         if status is None:
             status = {}
         # Ensure that the plugin CAN be run before starting anything.
@@ -407,7 +417,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         self.timer.start_timer('Plugin')
         plugin['start'] = self.timer.get_start_date_time('Plugin')
         # Use relative path from targets folders while saving
-        plugin['output_path'] = os.path.relpath(self.get_plugin_output_dir(plugin), self.config.get_output_dir_target())
+        plugin['output_path'] = os.path.relpath(self.get_plugin_output_dir(plugin_output_obj), self.config.get_output_dir_target())
         status['AllSkipped'] = False  # A plugin is going to be run.
         plugin['status'] = 'Running'
         self.plugin_count += 1
@@ -430,8 +440,10 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         status_msg = ''
         partial_output = []
         abort_reason = ''
+
         try:
-            output = self.run_plugin(plugin_dir, plugin)
+            output = self.run_plugin(plugin_dir, plugin, plugin_output_obj)
+
             status_msg = 'Successful'
             status['SomeSuccessful'] = True
         except KeyboardInterrupt:
@@ -462,12 +474,15 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         finally:
             plugin['status'] = status_msg
             plugin['end'] = self.timer.get_end_date_time('Plugin')
-            plugin['owtf_rank'] = self.rank_plugin(output, self.get_plugin_output_dir(plugin))
+            plugin['owtf_rank'] = self.rank_plugin(output, self.get_plugin_output_dir(plugin_output_obj))
             try:
+                output_path = None
+                if os.path.exists(self.get_plugin_output_dir(plugin_output_obj)):
+                    output_path = plugin['output_path']
                 if status_msg == 'Successful':
-                    self.plugin_output.save_plugin_output(plugin, output)
+                    self.plugin_output.save_plugin_output(plugin, output, output_path)
                 else:
-                    self.plugin_output.save_partial_output(plugin, partial_output, abort_reason)
+                    self.plugin_output.save_partial_output(plugin, partial_output, output_path, abort_reason)
             except SQLAlchemyError as e:
                 logging.error("Exception occurred while during database transaction : \n%s", str(e))
                 output += str(e)

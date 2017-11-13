@@ -81,10 +81,6 @@ class Config(BaseComponent, ConfigInterface):
         self.db_plugin = self.get_component("db_plugin")
         self.worklist_manager = self.get_component("worklist_manager")
         self.do_normalize = which('unisecbarber') is not None
-        if self.do_normalize:
-            logging.error("Installed")
-        else:
-            logging.error("NotInstalled")
 
 
     def initialize_attributes(self):

@@ -20,7 +20,7 @@ from owtf.managers.plugin import PluginDB
 from owtf.plugin.plugin_handler import PluginHandler
 from owtf.plugin.plugin_helper import PluginHelper
 from owtf.plugin.plugin_params import PluginParams
-from owtf.managers.poutput import POutputDB
+from owtf.managers.plugin_output import POutputDB
 from owtf.managers.resource import ResourceDB
 from owtf.managers.session import OWTFSessionDB
 from owtf.managers.target import TargetDB
@@ -57,8 +57,9 @@ class ComponentInitialiser():
         DB()
         try:
             OWTFSessionDB()
-        except:
+        except Exception as e:
             print("Unexpected error:", sys.exc_info()[0])
+            print("Unexpected error:", str(e))
             raise DatabaseNotRunningException()
         WorklistManager()
         ConfigDB()

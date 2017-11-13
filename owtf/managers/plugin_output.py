@@ -98,6 +98,9 @@ class POutputDB(BaseComponent, PluginOutputInterface):
             pdict["start_time"] = obj.start_time.strftime(self.db_config.get("DATE_TIME_FORMAT"))
             pdict["end_time"] = obj.end_time.strftime(self.db_config.get("DATE_TIME_FORMAT"))
             pdict["run_time"] = self.timer.get_time_as_str(obj.run_time)
+            pdict["commands"] = [ cmd.to_dict() for cmd in obj.commands ]
+
+
             return pdict
 
     @target_required
@@ -312,7 +315,7 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         return plugin_output_count > 0  # This is nothing but a "None" returned
 
     @target_required
-    def save_plugin_output(self, plugin, output, target_id=None):
+    def save_plugin_output(self, plugin, output, output_path, target_id=None):
         """Save into the database the command output of the plugin.
 
         :param plugin: Plugin dict
@@ -324,29 +327,78 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         :return: None
         :rtype: None
         """
-        self.db.session.merge(models.PluginOutput(
-            plugin_key=plugin["key"],
-            plugin_code=plugin["code"],
-            plugin_group=plugin["group"],
-            plugin_type=plugin["type"],
-            output=json.dumps(output),
-            start_time=plugin["start"],
-            end_time=plugin["end"],
-            status=plugin["status"],
-            target_id=target_id,
-            # Save path only if path exists i.e if some files were to be stored it will be there
-            output_path=(plugin["output_path"] if os.path.exists(
-                self.plugin_handler.get_plugin_output_dir(plugin)) else None),
-            owtf_rank=plugin['owtf_rank'])
-        )
+
+        instance = self.db.session.query(models.PluginOutput).filter_by(plugin_key=plugin["key"], target_id=target_id).first()
+        if instance:
+            instance.plugin_key=plugin["key"],
+            instance.plugin_code=plugin["code"],
+            instance.plugin_group=plugin["group"],
+            instance.plugin_type=plugin["type"],
+            instance.output=json.dumps(output),
+            instance.start_time=plugin["start"],
+            instance.end_time=plugin["end"],
+            instance.status=plugin["status"],
+            instance.target_id=target_id,
+            instance.output_path=output_path,
+            instance.owtf_rank=plugin['owtf_rank']
+        else:
+            self.db.session.merge(models.PluginOutput(
+                plugin_key=plugin["key"],
+                plugin_code=plugin["code"],
+                plugin_group=plugin["group"],
+                plugin_type=plugin["type"],
+                output=json.dumps(output),
+                start_time=plugin["start"],
+                end_time=plugin["end"],
+                status=plugin["status"],
+                target_id=target_id,
+                # Save path only if path exists i.e if some files were to be stored it will be there
+                output_path=output_path,
+                owtf_rank=plugin['owtf_rank'])
+            )
         try:
             self.db.session.commit()
         except SQLAlchemyError as e:
             self.db.session.rollback()
             raise e
 
+
     @target_required
-    def save_partial_output(self, plugin, output, message, target_id=None):
+    def get_or_create(self, key, code, group, plugin_type, target_id=None):
+        """Save into the database the command output of the plugin.
+
+        :param plugin: Plugin dict
+        :type plugin: `dict`
+        :param output: Plugin output
+        :type output: `str`
+        :param target_id: target ID
+        :type target_id: `int`
+        :return: None
+        :rtype: None
+        """
+        # query = self.db.session.query(models.PluginOutput).filter_by(target_id=target_id, plugin_key=key)
+        query = self.db.session.query(models.PluginOutput).filter_by(plugin_key=key)
+        instance = query.first()
+        if instance:
+            return instance
+
+        plugin_output = models.PluginOutput(
+            plugin_key=key,
+            plugin_code=code,
+            plugin_group=group,
+            plugin_type=plugin_type,
+            target_id=target_id,
+            )
+        self.db.session.add(plugin_output)
+        try:
+            self.db.session.commit()
+        except SQLAlchemyError as e:
+            self.db.session.rollback()
+            raise e
+        return plugin_output
+
+    @target_required
+    def save_partial_output(self, plugin, output, output_path, message, target_id=None):
         """Save partial plugin output
 
         :param plugin: Plugin dict
@@ -360,22 +412,36 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         :return: None
         :rtype: None
         """
-        self.db.session.merge(models.PluginOutput(
-            plugin_key=plugin["key"],
-            plugin_code=plugin["code"],
-            plugin_group=plugin["group"],
-            plugin_type=plugin["type"],
-            output=json.dumps(output),
-            error=message,
-            start_time=plugin["start"],
-            end_time=plugin["end"],
-            status=plugin["status"],
-            target_id=target_id,
-            # Save path only if path exists i.e if some files were to be stored it will be there
-            output_path=(plugin["output_path"] if os.path.exists(
-                self.plugin_handler.get_plugin_output_dir(plugin)) else None),
-            owtf_rank=plugin['owtf_rank'])
-        )
+        instance = self.db.session.query(models.PluginOutput).filter_by(plugin_key=plugin["key"], target_id=target_id).first()
+        if instance:
+            instance.plugin_key=plugin["key"],
+            instance.plugin_code=plugin["code"],
+            instance.plugin_group=plugin["group"],
+            instance.plugin_type=plugin["type"],
+            instance.output=json.dumps(output),
+            instance.error=message,
+            instance.start_time=plugin["start"],
+            instance.end_time=plugin["end"],
+            instance.status=plugin["status"],
+            instance.target_id=target_id,
+            instance.output_path=output_path,
+            instance.owtf_rank=plugin['owtf_rank']
+        else:
+            self.db.session.merge(models.PluginOutput(
+                plugin_key=plugin["key"],
+                plugin_code=plugin["code"],
+                plugin_group=plugin["group"],
+                plugin_type=plugin["type"],
+                output=json.dumps(output),
+                error=message,
+                start_time=plugin["start"],
+                end_time=plugin["end"],
+                status=plugin["status"],
+                target_id=target_id,
+                # Save path only if path exists i.e if some files were to be stored it will be there
+                output_path=output_path,
+                owtf_rank=plugin['owtf_rank'])
+            )
         try:
             self.db.session.commit()
         except SQLAlchemyError as e:

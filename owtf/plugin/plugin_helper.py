@@ -30,6 +30,7 @@ class PluginHelper(BaseComponent):
     def __init__(self):
         self.register_in_service_locator()
         self.config = self.get_component("config")
+        self.db = self.get_component("db")
         self.normalizer = self.get_component("normalizer")
         self.target = self.get_component("target")
         self.url_manager = self.get_component("url_manager")
@@ -157,36 +158,37 @@ class PluginHelper(BaseComponent):
         FileOperations.create_missing_dirs(PluginOutputDir)  # Create output dir so that scripts can cd to it :)
         return PluginOutputDir
 
-    def RunCommand(self, Command, PluginInfo, PluginOutputDir):
-        FrameworkAbort = PluginAbort = False
-        if not PluginOutputDir:
-            PluginOutputDir = self.InitPluginOutputDir(PluginInfo)
+    def RunCommand(self, command, plugin_output, plugin_output_dir):
+        framework_abort = plugin_abort = False
+        if not plugin_output_dir:
+            plugin_output_dir = self.Initplugin_output_dir(plugin_output)
         self.timer.start_timer('FormatCommandAndOutput')
 
         cmd = None
-        cmd_hsh = hash_for_cmd(Command)
+        cmd_hsh = hash_for_cmd(command)
         try:
             if self.config.do_normalize:
-                cmd, RawOutput = self.shell.shell_exec_monitor2(PluginOutputDir, Command, PluginInfo)
+                cmd, raw_output = self.shell.shell_exec_monitor2(plugin_output_dir, command, plugin_output)
             else:
-                RawOutput = self.shell.shell_exec_monitor(PluginOutputDir, Command, PluginInfo)
-        except PluginAbortException as PartialOutput:
-            RawOutput = str(PartialOutput.parameter)  # Save Partial Output
-            PluginAbort = True
-        except FrameworkAbortException as PartialOutput:
-            RawOutput = str(PartialOutput.parameter)  # Save Partial Output
-            FrameworkAbort = True
+                raw_output = self.shell.shell_exec_monitor(plugin_output_dir, command, plugin_output)
+        except plugin_abortException as PartialOutput:
+            raw_output = str(PartialOutput.parameter)  # Save Partial Output
+            plugin_abort = True
+        except framework_abortException as PartialOutput:
+            raw_output = str(PartialOutput.parameter)  # Save Partial Output
+            framework_abort = True
 
-        if self.config.do_normalize:
-            norm_file = os.path.join(PluginOutputDir, "%s.json" % cmd_hsh)
+        if cmd and self.config.do_normalize:
+            norm_file = os.path.join(plugin_output_dir, "%s.json" % cmd_hsh)
             if os.path.isfile(norm_file):
                 self.normalizer.process(cmd, norm_file)
 
 
-        TimeStr = self.timer.get_elapsed_time_as_str('FormatCommandAndOutput')
-        logging.info("Time=%s", TimeStr)
-        # out = [ModifiedCommand, FrameworkAbort, PluginAbort, TimeStr, RawOutput, PluginOutputDir]
-        out = [Command, FrameworkAbort, PluginAbort, TimeStr, RawOutput, PluginOutputDir]
+        time_str = self.timer.get_elapsed_time_as_str('FormatCommandAndOutput')
+
+        logging.info("Time=%s", time_str)
+        # out = [ModifiedCommand, framework_abort, plugin_abort, time_str, raw_output, plugin_output_dir]
+        out = [command, framework_abort, plugin_abort, time_str, raw_output, plugin_output_dir]
         return out
 
     def GetCommandOutputFileNameAndExtension(self, InputName):
@@ -202,36 +204,36 @@ class PluginHelper(BaseComponent):
             return str(Snippet)
         return cgi.escape(str(Snippet))  # Escape snippet to avoid breaking HTML
 
-    def CommandDump(self, CommandIntro, OutputIntro, ResourceList, PluginInfo, PreviousOutput):
+    def CommandDump(self, command_intro, output_intro, resource_list, plugin_output, previous_output):
         output_list = []
-        PluginOutputDir = self.InitPluginOutputDir(PluginInfo)
-        ResourceList = sorted(ResourceList, key=lambda x: x[0] == "Extract URLs")
-        for Name, Command in ResourceList:
-            dump_file_name = "%s.txt" % os.path.splitext(Name)[0]  # Add txt extension to avoid wrong mimetypes
-            plugin_output = dict(PLUGIN_OUTPUT)
-            ModifiedCommand, FrameworkAbort, PluginAbort, TimeStr, RawOutput, PluginOutputDir = self.RunCommand(Command,
-                PluginInfo, PluginOutputDir)
-            plugin_output["type"] = "CommandDump"
-            plugin_output["output"] = {
-                "Name": self.GetCommandOutputFileNameAndExtension(Name)[0],
-                "CommandIntro": CommandIntro,
-                "ModifiedCommand": ModifiedCommand,
-                "RelativeFilePath": self.plugin_handler.dump_output_file(dump_file_name, RawOutput, PluginInfo,
+        plugin_output_dir = self.InitPluginOutputDir(plugin_output)
+        resource_list = sorted(resource_list, key=lambda x: x[0] == "Extract URLs")
+        for name, command in resource_list:
+            dump_file_name = "%s.txt" % os.path.splitext(name)[0]  # Add txt extension to avoid wrong mimetypes
+            _plugin_output = dict(PLUGIN_OUTPUT)
+            modified_command, framework_abort, plugin_abort, time_str, raw_output, plugin_output_dir = self.RunCommand(command,
+                plugin_output, plugin_output_dir)
+            _plugin_output["type"] = "CommandDump"
+            _plugin_output["output"] = {
+                "Name": self.GetCommandOutputFileNameAndExtension(name)[0],
+                "CommandIntro": command_intro,
+                "ModifiedCommand": modified_command,
+                "RelativeFilePath": self.plugin_handler.dump_output_file(dump_file_name, raw_output, plugin_output,
                                                                          relative_path=True),
-                "OutputIntro": OutputIntro,
-                "TimeStr": TimeStr
+                "OutputIntro": output_intro,
+                "TimeStr": time_str
             }
-            plugin_output = [plugin_output]
+            _plugin_output = [_plugin_output]
             # This command returns URLs for processing
-            if Name == self.config.get_val('EXTRACT_URLS_RESERVED_RESOURCE_NAME'):
-                #  The plugin_output output dict will be remade if the resource is of this type
-                plugin_output = self.LogURLsFromStr(RawOutput)
+            if name == self.config.get_val('EXTRACT_URLS_RESERVED_RESOURCE_NAME'):
+                #  The _plugin_output output dict will be remade if the resource is of this type
+                _plugin_output = self.LogURLsFromStr(raw_output)
             # TODO: Look below to handle streaming report
-            if PluginAbort:  # Pass partial output to external handler:
-                raise PluginAbortException(PreviousOutput + plugin_output)
-            if FrameworkAbort:
-                raise FrameworkAbortException(PreviousOutput + plugin_output)
-            output_list += plugin_output
+            if plugin_abort:  # Pass partial output to external handler:
+                raise PluginAbortException(previous_output + _plugin_output)
+            if framework_abort:
+                raise FrameworkAbortException(previous_output + _plugin_output)
+            output_list += _plugin_output
 
         return output_list
 
