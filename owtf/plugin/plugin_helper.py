@@ -158,7 +158,7 @@ class PluginHelper(BaseComponent):
         FileOperations.create_missing_dirs(PluginOutputDir)  # Create output dir so that scripts can cd to it :)
         return PluginOutputDir
 
-    def RunCommand(self, command, plugin_output, plugin_output_dir):
+    def RunCommand(self, name, command, plugin_output, plugin_output_dir):
         framework_abort = plugin_abort = False
         if not plugin_output_dir:
             plugin_output_dir = self.Initplugin_output_dir(plugin_output)
@@ -168,7 +168,7 @@ class PluginHelper(BaseComponent):
         cmd_hsh = hash_for_cmd(command)
         try:
             if self.config.do_normalize:
-                cmd, raw_output = self.shell.shell_exec_monitor2(plugin_output_dir, command, plugin_output)
+                cmd, raw_output = self.shell.shell_exec_monitor2(plugin_output_dir, name, command, plugin_output)
             else:
                 raw_output = self.shell.shell_exec_monitor(plugin_output_dir, command, plugin_output)
         except plugin_abortException as PartialOutput:
@@ -211,7 +211,7 @@ class PluginHelper(BaseComponent):
         for name, command in resource_list:
             dump_file_name = "%s.txt" % os.path.splitext(name)[0]  # Add txt extension to avoid wrong mimetypes
             _plugin_output = dict(PLUGIN_OUTPUT)
-            modified_command, framework_abort, plugin_abort, time_str, raw_output, plugin_output_dir = self.RunCommand(command,
+            modified_command, framework_abort, plugin_abort, time_str, raw_output, plugin_output_dir = self.RunCommand(name, command,
                 plugin_output, plugin_output_dir)
             _plugin_output["type"] = "CommandDump"
             _plugin_output["output"] = {

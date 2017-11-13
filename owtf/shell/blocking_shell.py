@@ -269,7 +269,7 @@ class Shell(BaseComponent, ShellInterface):
                 output += str(e)
         return scrub_output(output)
 
-    def shell_exec_monitor2(self, path, command, plugin_output):
+    def shell_exec_monitor2(self, path, name, command, plugin_output):
         """Monitor shell command execution
 
         :param command: Command to run
@@ -283,6 +283,7 @@ class Shell(BaseComponent, ShellInterface):
 
         command = self.replace_dyn_vars(command)
         cmd_info = self.start_cmd(command, command)
+        cmd_info["Name"] = name
         target, can_run = self.can_run_cmd(cmd_info)
         if False: # not can_run:
             message = "The command was already run for target: %s" % str(target)

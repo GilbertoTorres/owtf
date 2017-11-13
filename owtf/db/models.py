@@ -232,6 +232,7 @@ class Command(Base):
     stdout = Column(String)
     stderr = Column(String)
     files = Column(String)
+    name = Column(String)
 
     hosts = relationship(
         "Host",
@@ -264,7 +265,6 @@ class Command(Base):
         back_populates="commands")
 
     def to_dict(self):
-        
 
         small_stdout = ""
         for idx, line in enumerate(self.stdout.splitlines()):
@@ -272,8 +272,8 @@ class Command(Base):
                 break;
             small_stdout += line + "\n"
 
-
         return dict(
+            name= (self.name if self.name else "(unknown)"),
             start_time= (self.start_time.isoformat() if self.start_time else None),
             end_time=(self.end_time.isoformat() if self.start_time else None),
             success=self.success,

@@ -6,10 +6,12 @@ Component to handle data storage and search of all commands run
 """
 
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import and_
+
 
 from owtf.dependency_management.dependency_resolver import BaseComponent
 from owtf.dependency_management.interfaces import CommandRegisterInterface
-from owtf.db import models
+from owtf.db.models import Command, PluginOutput
 from owtf.managers.target import target_required
 
 
@@ -36,16 +38,16 @@ class CommandRegister(BaseComponent, CommandRegisterInterface):
         :return: None
         :rtype: None
         """
-        cmd = models.Command(
+        cmd = Command(
             start_time=command['Start'],
             end_time=command['End'],
             success=command['Success'],
-            target_id=command['Target'],
             plugin_key=command['PluginKey'],
             modified_command=command['ModifiedCommand'].strip(),
             original_command=command['OriginalCommand'].strip(),
             plugin_output_id=command['PluginOutputId'],
-            stdout=command['Output']
+            stdout=command['Output'],
+            name=command['Name']
         )
         self.db.session.add(cmd)
         try:
@@ -63,7 +65,7 @@ class CommandRegister(BaseComponent, CommandRegisterInterface):
         :return: None
         :rtype: None
         """
-        command_obj = self.db.session.query(models.Command).filter_by(original_command=original_command).first()
+        command_obj = self.db.session.query(Command).filter_by(original_command=original_command).first()
         self.db.session.delete(command_obj)
         self.db.session.commit()
 
@@ -78,17 +80,20 @@ class CommandRegister(BaseComponent, CommandRegisterInterface):
         :return: None
         :rtype: None
         """
-        register_entry = self.db.session.query(models.Command).filter_by(original_command=original_command).first()
+        query = self.db.session.query(Command).join(PluginOutput) \
+                                .filter(and_(Command.original_command == original_command, PluginOutput.target_id == target_id))
+        register_entry = query.first()
+
         if register_entry:
             # If the command was completed and the plugin output to which it
             # is referring exists
             if register_entry.success:
-                if self.plugin_output.plugin_output_exists(register_entry.plugin_key, register_entry.target_id):
-                    return self.target.get_target_url_for_id(register_entry.target_id)
+                if self.plugin_output.plugin_output_exists(register_entry.plugin_key, register_entry.plugin_output.target_id):
+                    return self.target.get_target_url_for_id(register_entry.plugin_output.target_id)
                 else:
                     self.del_command(original_command)
                     return None
             else:  # Command failed
                 self.del_command(original_command)
-                return self.target.get_target_url_for_id(register_entry.target_id)
+                return self.target.get_target_url_for_id(register_entry.plugin_output.target_id)
         return None
