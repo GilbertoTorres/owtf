@@ -33,7 +33,6 @@ class DBInterface(AbstractInterface):
     def get_category(self):
         pass
 
-
 class DBConfigInterface(AbstractInterface):
 
     @abstractmethod
@@ -627,3 +626,6 @@ class NormalizerInterface(AbstractInterface):
     @abstractmethod
     def process(self, filename):
         pass
+
+class ReportDBInterface(AbstractInterface):
+    pass

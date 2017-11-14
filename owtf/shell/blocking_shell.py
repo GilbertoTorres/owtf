@@ -87,7 +87,7 @@ class Shell(BaseComponent, ShellInterface):
         cmd_info['PluginOutputId'] = plugin_output.id
         return self.command_register.add_command(cmd_info)
 
-    def finish_cmd2(self, cmd_info, was_cancelled, plugin_output, output):
+    def finish_cmd2(self, cmd_info, was_cancelled, plugin_output, output, normalized=False):
         """Finish the command run
 
         :param cmd_info: Command info dict
@@ -107,6 +107,7 @@ class Shell(BaseComponent, ShellInterface):
         cmd_info['RunTime'] = self.timer.get_elapsed_time_as_str(self.command_time_offset)
         cmd_info['PluginOutputId'] = plugin_output.id
         cmd_info['Output'] = output
+        cmd_info['Normalized'] = normalized
         return self.command_register.add_command(cmd_info)
 
     def escape_shell_path(self, text):
@@ -329,7 +330,7 @@ class Shell(BaseComponent, ShellInterface):
         if proc.returncode == 0:
             logging.warn("Unisecbarber compatible!")
             try:
-                cmd = self.finish_cmd2(cmd_info, cancelled, plugin_output, output)
+                cmd = self.finish_cmd2(cmd_info, cancelled, plugin_output, output, normalized=True)
             except SQLAlchemyError as e:
                 logging.error("Exception occurred while during database transaction : \n%s", str(e))
                 output += str(e)

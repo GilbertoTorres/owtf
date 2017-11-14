@@ -82,3 +82,52 @@ class ReportExportHandler(APIRequestHandler):
             self.write(result)
         else:
             raise tornado.web.HTTPError(400)
+
+
+class ReportCommandsHostsHandler(APIRequestHandler):
+    """
+    Class handling API methods related to export report funtionality.
+    This API returns all information about a target scan present in OWTF.
+    :raise InvalidTargetReference: If target doesn't exists.
+    :raise InvalidParameterType: If some unknown parameter in `filter_data`.
+    """
+    # TODO: Add API documentation.
+
+    SUPPORTED_METHODS = ['GET']
+
+    def get(self, command_id=None):
+        """
+        REST API - /api/targets/<target_id>/export/ returns JSON(data) for template.
+        """
+        if not command_id:
+            raise tornado.web.HTTPError(400)
+        
+        result = self.get_component("db_report").get_hosts_for_command(command_id, full=True)
+        if result:
+            self.write(result)
+        else:
+            raise tornado.web.HTTPError(400)
+
+class ReportPluginOutputsHostsHandler(APIRequestHandler):
+    """
+    Class handling API methods related to export report funtionality.
+    This API returns all information about a target scan present in OWTF.
+    :raise InvalidTargetReference: If target doesn't exists.
+    :raise InvalidParameterType: If some unknown parameter in `filter_data`.
+    """
+    # TODO: Add API documentation.
+
+    SUPPORTED_METHODS = ['GET']
+
+    def get(self, plugin_output_id=None):
+        """
+        REST API - /api/targets/<target_id>/export/ returns JSON(data) for template.
+        """
+        if not plugin_output_id:
+            raise tornado.web.HTTPError(400)
+        
+        result = self.get_component("db_report").get_hosts_for_plugin_output(plugin_output_id, full=True)
+        if result:
+            self.write(dict(hosts=result))
+        else:
+            raise tornado.web.HTTPError(400)

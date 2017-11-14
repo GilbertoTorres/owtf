@@ -22,6 +22,7 @@ class ServiceLocator:
         "db_config",
         "db_error",
         "db_plugin",
+        "db_report",
         "config",
         "error_handler",
         "mapping_db",

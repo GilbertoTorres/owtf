@@ -46,7 +46,8 @@ class CommandRegister(BaseComponent, CommandRegisterInterface):
             original_command=command['OriginalCommand'].strip(),
             plugin_output_id=command['PluginOutputId'],
             stdout=command['Output'],
-            name=command['Name']
+            name=command['Name'],
+            normalized=command['Normalized']
         )
         self.db.session.add(cmd)
         try:

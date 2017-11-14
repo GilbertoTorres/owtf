@@ -102,6 +102,11 @@ class POutputDB(BaseComponent, PluginOutputInterface):
             pdict["run_time"] = self.timer.get_time_as_str(obj.run_time)
             pdict["commands"] = [ cmd.to_dict() for cmd in obj.commands ]
             pdict["plugin"] =   obj.plugin.to_dict()
+            pdict["hosts"] = self.get_component("db_report").get_hosts_for_plugin_output(obj.id, full=False)
+            pdict["ifaces"] = self.get_component("db_report").get_hosts_for_plugin_output(obj.id, full=False)
+            pdict["services"] = self.get_component("db_report").get_hosts_for_plugin_output(obj.id, full=False)
+            pdict["vulns"] = self.get_component("db_report").get_hosts_for_plugin_output(obj.id, full=False)
+            pdict["creds"] = self.get_component("db_report").get_hosts_for_plugin_output(obj.id, full=False)
 
             return pdict
 

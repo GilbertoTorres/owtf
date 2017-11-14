@@ -3,3 +3,4 @@ export const STATIC_URI = '/static/';
 export const TARGET_UI_URI = '/ui/targets/';
 export const TARGET_API_URI = '/api/targets/';
 export const WORKLIST_API_URI = '/api/worklist/';
+export const REPORT_API_URI = '/api/report/';

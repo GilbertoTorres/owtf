@@ -228,6 +228,8 @@ class Command(Base):
     stderr = Column(String)
     files = Column(String)
     name = Column(String)
+    
+    normalized = Column(Boolean, default=False)
 
     hosts = relationship(
         "Host",
@@ -268,6 +270,7 @@ class Command(Base):
             small_stdout += line + "\n"
 
         return dict(
+            id= self.id,
             name= (self.name if self.name else "(unknown)"),
             start_time= (self.start_time.isoformat() if self.start_time else None),
             end_time=(self.end_time.isoformat() if self.start_time else None),
@@ -278,6 +281,7 @@ class Command(Base):
             small_stdout=small_stdout,
             stderr=self.stderr,
             files=self.files,
+            normalized=self.normalized,
             hosts=[host.to_dict() for host in self.hosts],
             ifaces=[iface.to_dict() for iface in self.ifaces],
             services=[service.to_dict() for service in self.services],
@@ -462,6 +466,13 @@ class Host(Base):
             os=self.os,
             )
 
+    def to_dict_full(self):
+        return dict(
+            name=self.name,
+            os=self.os,
+            ifaces=[iface.to_dict_full() for iface in self.ifaces]
+            )
+
 class Iface(Base):
     __tablename__ = 'ifaces'
 
@@ -503,6 +514,12 @@ class Iface(Base):
             mac=self.mac,
             )
 
+    def to_dict_full(self):
+        return dict(
+            name=self.name,
+            os=self.mac,
+            services=[service.to_dict_full() for service in self.services]
+            )
 
 class Service(Base):
     __tablename__ = 'services'
@@ -539,6 +556,13 @@ class Service(Base):
             ports=self.ports,
             )
 
+    def to_dict_full(self):
+        return dict(
+            name=self.name,
+            ports=self.ports,
+            vulns=[vuln.to_dict_full() for vuln in self.vulns]
+            )
+
 class Cred(Base):
     __tablename__ = 'creds'
 
@@ -570,6 +594,13 @@ class Cred(Base):
             name=self.name,
             username=self.username,
             password=self.password,
+            )
+
+    def to_dict_full(self):
+        return dict(
+            name=self.name,
+            username=self.username,
+            password=self.password
             )
 
 
@@ -611,6 +642,12 @@ class Vuln(Base):
         return dict(
             name=self.name,
             severity=self.severity,
+            )
+
+    def to_dict_full(self):
+        return dict(
+            name=self.name,
+            severity=self.severity
             )
 
 class VulnWeb(Vuln):

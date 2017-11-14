@@ -17,6 +17,7 @@ from owtf.managers.config import ConfigDB
 from owtf.managers.error import ErrorDB
 from owtf.managers.mapping import MappingDB
 from owtf.managers.plugin import PluginDB
+from owtf.managers.report import ReportDB
 from owtf.plugin.plugin_handler import PluginHandler
 from owtf.plugin.plugin_helper import PluginHelper
 from owtf.plugin.plugin_params import PluginParams
@@ -70,6 +71,7 @@ class ComponentInitialiser():
         ErrorDB()
         MappingDB()
         PluginDB()
+        ReportDB()
         URLManager()
         TransactionManager()
 
@@ -83,6 +85,7 @@ class ComponentInitialiser():
         db_config.init()
         Timer(db_config.get('DATE_TIME_FORMAT'))
         ServiceLocator.get_component("db_plugin").init()
+        ServiceLocator.get_component("db_report").init()
         ServiceLocator.get_component("config").init()
         PluginHandler(args)
         Reporter()

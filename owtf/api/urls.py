@@ -9,7 +9,7 @@ import tornado.web
 from owtf.api.handlers.config import ConfigurationHandler
 from owtf.api.handlers.misc import ErrorDataHandler, DashboardPanelHandler, ProgressBarHandler
 from owtf.api.handlers.plugin import PluginDataHandler, PluginNameOutput, PluginOutputHandler
-from owtf.api.handlers.report import ReportExportHandler
+from owtf.api.handlers.report import ReportExportHandler, ReportCommandsHostsHandler, ReportPluginOutputsHostsHandler
 from owtf.api.handlers.session import OWTFSessionHandler
 from owtf.api.handlers.targets import TargetSeverityChartHandler, TargetConfigSearchHandler, TargetConfigHandler
 from owtf.api.handlers.transactions import URLDataHandler, URLSearchHandler, TransactionDataHandler, \
@@ -45,6 +45,10 @@ def get_handlers():
         tornado.web.url(r'/api/targets/([0-9]+)/poutput/?' + plugin_group_re + '/?' + plugin_type_re + '/?' + plugin_code_re + '/?$', PluginOutputHandler, name='poutput_api_url'),
         tornado.web.url(r'/api/targets/([0-9]+)/poutput/names/?$', PluginNameOutput, name='plugin_name_api_url'),
         tornado.web.url(r'/api/targets/([0-9]+)/export/?$', ReportExportHandler, name='report_export_api_url'),
+        
+        # The report data api
+        tornado.web.url(r'/api/report/commands/([0-9]+)/hosts/?$', ReportCommandsHostsHandler, name='report_commands_hosts_api_url'),
+        tornado.web.url(r'/api/report/plugin_outputs/([0-9]+)/hosts/?$', ReportPluginOutputsHostsHandler, name='report_plugin_outputs_hosts_api_url'),
 
         # The following one url is dummy and actually processed in file server
         tornado.web.url(r'/api/workers/?([0-9]+)?/?(abort|pause|resume)?/?$', WorkerHandler, name='workers_api_url'),
