@@ -57,7 +57,7 @@ class Target(Base):
     transactions = relationship("Transaction", cascade="delete")
     poutputs = relationship("PluginOutput", cascade="delete")
     urls = relationship("Url", cascade="delete")
-    commands = relationship("Command", cascade="delete")
+    
     # Also has a column session specified as backref in
     # session model
     works = relationship("Work", backref="target", cascade="delete")
@@ -214,18 +214,16 @@ class Command(Base):
 
     id = Column(Integer, primary_key=True)
 
+    plugin_output_id = Column(Integer, ForeignKey("plugin_outputs.id"))
+    plugin_output = relationship(PluginOutput, backref=backref('commands', uselist=True))
+
     start_time = Column(DateTime)
     end_time = Column(DateTime)
     success = Column(Boolean, default=False)
-    target_id = Column(Integer, ForeignKey("targets.id"))
-    plugin_key = Column(String, ForeignKey("plugins.key"))
 
     modified_command = Column(String)
     original_command = Column(String)
 
-    plugin_output_id = Column(Integer, ForeignKey("plugin_outputs.id"))
-    plugin_output = relationship(PluginOutput, backref=backref('commands', uselist=True))
-    
     stdout = Column(String)
     stderr = Column(String)
     files = Column(String)

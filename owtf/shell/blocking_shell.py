@@ -105,8 +105,6 @@ class Shell(BaseComponent, ShellInterface):
             success = False
         cmd_info['Success'] = success
         cmd_info['RunTime'] = self.timer.get_elapsed_time_as_str(self.command_time_offset)
-        cmd_info['Target'] = self.target.get_target_id()
-        cmd_info['PluginKey'] = plugin_output.plugin_key
         cmd_info['PluginOutputId'] = plugin_output.id
         cmd_info['Output'] = output
         return self.command_register.add_command(cmd_info)

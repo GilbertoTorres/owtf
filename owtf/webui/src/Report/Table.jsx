@@ -72,6 +72,23 @@ class Table extends React.PureComponent {
         var postToWorkList = this.context.postToWorkList;
 
         return (
+            <div>
+            <div className="modal fade" id="fooModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+                <div className="modal-dialog" role="document">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                            <h4 className="modal-title" id="logModalLabel">Worker-Log</h4>
+                        </div>
+                        <div className="modal-body" id="log-modal-body"></div>
+                        <div className="modal-footer">
+                            <button type="button" className="btn btn-default" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <table className="table table-bordered table-striped table-hover table-report">
                 <thead>
                     <tr>
@@ -167,7 +184,7 @@ class Table extends React.PureComponent {
                     <tr>
                         <td colSpan="6">
                             <div className="btn-group btn-group-sm" role="group">
-                                  <button className="btn btn-unranked" type="button" >Hosts: {'X'}</button>
+                                  <button className="btn btn-unranked" type="button"  data-toggle="modal" data-target="#fooModal" >Hosts: {'X'}</button>
                                   <button className="btn btn-unranked" type="button" disabled="disabled" >Ifaces: {'X'}</button>
                                   <button className="btn btn-unranked" type="button" disabled="disabled" >Services: {'X'}</button>
                                   <button className="btn btn-unranked" type="button" disabled="disabled" >Creds: {'X'}</button>
@@ -234,6 +251,7 @@ class Table extends React.PureComponent {
                     </tr>
                 </tbody>
             </table>
+            </div>
         );
     }
 }

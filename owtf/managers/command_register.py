@@ -42,7 +42,6 @@ class CommandRegister(BaseComponent, CommandRegisterInterface):
             start_time=command['Start'],
             end_time=command['End'],
             success=command['Success'],
-            plugin_key=command['PluginKey'],
             modified_command=command['ModifiedCommand'].strip(),
             original_command=command['OriginalCommand'].strip(),
             plugin_output_id=command['PluginOutputId'],
@@ -88,7 +87,7 @@ class CommandRegister(BaseComponent, CommandRegisterInterface):
             # If the command was completed and the plugin output to which it
             # is referring exists
             if register_entry.success:
-                if self.plugin_output.plugin_output_exists(register_entry.plugin_key, register_entry.plugin_output.target_id):
+                if self.plugin_output.plugin_output_exists(register_entry.plugin_output.plugin_key, register_entry.plugin_output.target_id):
                     return self.target.get_target_url_for_id(register_entry.plugin_output.target_id)
                 else:
                     self.del_command(original_command)
