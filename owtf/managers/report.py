@@ -10,7 +10,7 @@ import json
 
 from sqlalchemy import or_
 
-from owtf.db.models import Command, PluginOutput, Target, Host
+from owtf.db.models import Command, PluginOutput, Target, Host, Iface, Service, Cred, Vuln
 from owtf.dependency_management.dependency_resolver import BaseComponent
 from owtf.dependency_management.interfaces import ReportDBInterface
 from owtf.utils import FileOperations
