@@ -398,6 +398,16 @@ class Plugin(Base):
 
     __table_args__ = (UniqueConstraint('type', 'code'),)
 
+    def to_dict(self):
+        return dict(
+            name=self.name,
+            title=self.title,
+            group=self.group,
+            type=self.type,
+            code=self.code,
+            descrip=self.descrip
+            )
+
 
 class Work(Base):
     __tablename__ = "worklist"

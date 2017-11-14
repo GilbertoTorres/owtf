@@ -63,7 +63,7 @@ class Accordian extends React.Component {
         var selectedStatus = this.context.selectedStatus;
 
         for (var i = 0; i < pluginDataList.length; i++) {
-            if ((selectedType.length === 0 || selectedType.indexOf(pluginDataList[i]['plugin_type']) !== -1) && (selectedGroup.length === 0 || selectedGroup.indexOf(pluginDataList[i]['plugin_group']) !== -1) && (selectedRank.length === 0 || selectedRank.indexOf(pluginDataList[i]['user_rank']) !== -1) && (selectedOwtfRank.length === 0 || selectedOwtfRank.indexOf(pluginDataList[i]['owtf_rank']) !== -1) && (selectedStatus.length === 0 || selectedStatus.indexOf(pluginDataList[i]['status']) !== -1)) {
+            if ((selectedType.length === 0 || selectedType.indexOf(pluginDataList[i].plugin.type) !== -1) && (selectedGroup.length === 0 || selectedGroup.indexOf(pluginDataList[i].plugin.group) !== -1) && (selectedRank.length === 0 || selectedRank.indexOf(pluginDataList[i]['user_rank']) !== -1) && (selectedOwtfRank.length === 0 || selectedOwtfRank.indexOf(pluginDataList[i]['owtf_rank']) !== -1) && (selectedStatus.length === 0 || selectedStatus.indexOf(pluginDataList[i]['status']) !== -1)) {
                 if (pluginDataList[i]['user_rank'] != null && pluginDataList[i]['user_rank'] != -1) {
                     if (pluginDataList[i]['user_rank'] > maxUserRank) {
                         maxUserRank = pluginDataList[i]['user_rank'];
@@ -178,7 +178,7 @@ class Accordian extends React.Component {
         if (index === presentState.length - 1) {
             $('#' + code).collapse('hide');
         } else {
-            pactive = presentState[index + 1]['plugin_type'];
+            pactive = presentState[index + 1].plugin.type;
         }
         this.setState({pluginData: presentState, pactive: pactive});
     };
@@ -223,15 +223,15 @@ class Accordian extends React.Component {
             success: function() {
                 alert.call(this, "Deleted plugin output for " + type + "@" + code);
                 for (var i = 0; i < pluginData.length; i++) {
-                    if ((pluginData[i]['plugin_type'] === type) && (pluginData[i]['plugin_group'] === group)) {
+                    if ((pluginData[i].plugin.type === type) && (pluginData[i].plugin.group === group)) {
                         break;
                     }
                 }
                 var pactive = (pluginData.length != 1 && i > 0)
-                    ? this.state.pluginData[i - 1]['plugin_type']
+                    ? this.state.pluginData[i - 1].plugin.type
                     : "";
                 pactive = (pluginData.length != 1 && i === 0)
-                    ? this.state.pluginData[i + 1]['plugin_type']
+                    ? this.state.pluginData[i + 1].plugin.type
                     : pactive;
                 this.setState({
                     pluginData: update(this.state.pluginData, {
@@ -261,7 +261,7 @@ class Accordian extends React.Component {
         var details = this.props.data['details'];
         var pluginData = this.props.data['data'];
         var code = this.props.code;
-        this.setState({details: details, pluginData: pluginData, code: code, pactive: pluginData[0]['plugin_type']});
+        this.setState({details: details, pluginData: pluginData, code: code, pactive: pluginData[0].plugin.type});
     };
 
     render() {
@@ -304,9 +304,9 @@ class Accordian extends React.Component {
                             <div className="col-md-2">
                                 <div className="btn-group btn-group-xs" role="group">
                                     {pluginData.map(function(obj) {
-                                        if ((selectedType.length === 0 || selectedType.indexOf(obj['plugin_type']) !== -1) && (selectedGroup.length === 0 || selectedGroup.indexOf(obj['plugin_group']) !== -1) && (selectedRank.length === 0 || selectedRank.indexOf(obj['user_rank']) !== -1) && (selectedOwtfRank.length === 0 || selectedOwtfRank.indexOf(obj['owtf_rank']) !== -1) && (selectedStatus.length === 0 || selectedStatus.indexOf(obj['status']) !== -1)) {
+                                        if ((selectedType.length === 0 || selectedType.indexOf(obj.plugin.type) !== -1) && (selectedGroup.length === 0 || selectedGroup.indexOf(obj.plugin.group) !== -1) && (selectedRank.length === 0 || selectedRank.indexOf(obj['user_rank']) !== -1) && (selectedOwtfRank.length === 0 || selectedOwtfRank.indexOf(obj['owtf_rank']) !== -1) && (selectedStatus.length === 0 || selectedStatus.indexOf(obj['status']) !== -1)) {
                                             return (
-                                                <button onClick={handlePluginBtnOnAccordian.bind(this, obj['plugin_type'])} key={code + obj['plugin_type'].split('_').join(' ')} className={(() => {
+                                                <button onClick={handlePluginBtnOnAccordian.bind(this, obj.plugin.type)} key={code + obj.plugin.type.split('_').join(' ')} className={(() => {
                                                     if (testCaseMax == 0)
                                                         return "btn btn-default";
                                                     else if (testCaseMax === 1)
@@ -322,7 +322,7 @@ class Accordian extends React.Component {
                                                     return "btn btn-unranked";
                                                 })()} style={{
                                                     marginTop: "23px"
-                                                }} type="button">{obj['plugin_type'].split('_').join(' ').charAt(0).toUpperCase() + obj['plugin_type'].split('_').join(' ').slice(1)}</button>
+                                                }} type="button">{obj.plugin.type.split('_').join(' ').charAt(0).toUpperCase() + obj.plugin.type.split('_').join(' ').slice(1)}</button>
                                             );
                                         }
                                     })}

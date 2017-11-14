@@ -401,12 +401,7 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
 
         """
         db = self.get_component("db")
-        plugin_output_obj = self.plugin_output.get_or_create(
-                                    plugin['key'], 
-                                    plugin['code'],
-                                    plugin['group'],
-                                    plugin['type']
-                                )
+        plugin_output_obj = self.plugin_output.get_or_create(plugin['key'])
 
         if status is None:
             status = {}

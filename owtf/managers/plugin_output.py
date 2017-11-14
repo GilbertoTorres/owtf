@@ -101,6 +101,7 @@ class POutputDB(BaseComponent, PluginOutputInterface):
             pdict["end_time"] = obj.end_time.strftime(self.db_config.get("DATE_TIME_FORMAT"))
             pdict["run_time"] = self.timer.get_time_as_str(obj.run_time)
             pdict["commands"] = [ cmd.to_dict() for cmd in obj.commands ]
+            pdict["plugin"] =   obj.plugin.to_dict()
 
             return pdict
 
@@ -136,7 +137,7 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         :return:
         :rtype:
         """
-        query = self.db.session.query(PluginOutput).join(Plugin).filter(Plugin.target_id == target_id)
+        query = self.db.session.query(PluginOutput).join(Plugin).filter(PluginOutput.target_id == target_id)
         if filter_data.get("target_id", None):
             query.filter(Plugin.target_id == filter_data["target_id"])
         if filter_data.get("plugin_key", None):
@@ -222,16 +223,16 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         :rtype: `dict`
         """
         unique_data = {
-            "plugin_type": [i[0] for i in self.db.session.query(PluginOutput.plugin_type).filter_by(
-                target_id=target_id).distinct().all()],
-            "plugin_group": [i[0] for i in self.db.session.query(PluginOutput.plugin_group).filter_by(
-                target_id=target_id).distinct().all()],
-            "status": [i[0] for i in self.db.session.query(PluginOutput.status).filter_by(
-                target_id=target_id).distinct().all()],
-            "user_rank": [i[0] for i in self.db.session.query(PluginOutput.user_rank).filter_by(
-                target_id=target_id).distinct().all()],
-            "owtf_rank": [i[0] for i in self.db.session.query(PluginOutput.owtf_rank).filter_by(
-                target_id=target_id).distinct().all()],
+            "plugin_type": [i.plugin.type for i in self.db.session.query(PluginOutput).join(Plugin).filter(
+                PluginOutput.target_id == target_id).distinct().all()],
+            "plugin_group": [i.plugin.group for i in self.db.session.query(PluginOutput).join(Plugin).filter(
+                PluginOutput.target_id == target_id).distinct().all()],
+            "status": [i.status for i in self.db.session.query(PluginOutput).join(Plugin).filter(
+                PluginOutput.target_id == target_id).distinct().all()],
+            "user_rank": [i.user_rank for i in self.db.session.query(PluginOutput).join(Plugin).filter(
+                PluginOutput.target_id == target_id).distinct().all()],
+            "owtf_rank": [i.owtf_rank for i in self.db.session.query(PluginOutput).join(Plugin).filter(
+                PluginOutput.target_id == target_id).distinct().all()],
         }
         return unique_data
 
@@ -357,7 +358,7 @@ class POutputDB(BaseComponent, PluginOutputInterface):
 
 
     @target_required
-    def get_or_create(self, key, code, group, plugin_type, target_id=None):
+    def get_or_create(self, key, target_id=None):
         """Save into the database the command output of the plugin.
 
         :param plugin: Plugin dict
@@ -377,6 +378,7 @@ class POutputDB(BaseComponent, PluginOutputInterface):
 
         plugin_output = PluginOutput(
             target_id=target_id,
+            plugin_key=key,
             )
         self.db.session.add(plugin_output)
         try:

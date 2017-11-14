@@ -63,9 +63,9 @@ class Table extends React.PureComponent {
         var end_time = obj['end_time'];
         var run_time = obj['status'];
         var output = obj['output'] === undefined ? "" : obj['output'];
-        var group = obj['plugin_group'];
-        var type = obj['plugin_type'];
-        var code = obj['plugin_code'];
+        var group = obj.plugin.group;
+        var type = obj.plugin.type;
+        var code = obj.plugin.code;
         var commands = obj['commands'];
 
         var deletePluginOutput = this.context.deletePluginOutput;
@@ -165,6 +165,18 @@ class Table extends React.PureComponent {
                         </td>
                     </tr>
                     <tr>
+                        <td colSpan="6">
+                            <div className="btn-group btn-group-sm" role="group">
+                                  <button className="btn btn-unranked" type="button" >Hosts: {'X'}</button>
+                                  <button className="btn btn-unranked" type="button" disabled="disabled" >Ifaces: {'X'}</button>
+                                  <button className="btn btn-unranked" type="button" disabled="disabled" >Services: {'X'}</button>
+                                  <button className="btn btn-unranked" type="button" disabled="disabled" >Creds: {'X'}</button>
+                                  <button className="btn btn-unranked" type="button" >Vulns: {'X'}</button>
+                                  <button className="btn btn-unranked" type="button" disabled="disabled" >Notes: {'X'}</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
                         <th colSpan="6">
                             COMMANDS
                         </th>
@@ -175,12 +187,13 @@ class Table extends React.PureComponent {
                     <tr>
                     <td colSpan="6">
                         <div className="row-fluid">
+                            <h4>Test Command</h4>
                             <div className="col-md-12">
                                 <pre className="commandPre">{cmd.original_command}</pre>
                             </div>
                         </div>
                         <div className="row-fluid">
-                            <h4><a href="/output_files/{{ FilePath }}" target="_blank">{cmd.name}</a> OutputIntro  (Execution Time: {cmd.start_time} - {cmd.end_time})</h4>
+                            <h4><a href="/output_files/{{ FilePath }}" target="_blank">{cmd.name}</a> Output (Execution Time: {cmd.start_time} - {cmd.end_time})</h4>
                             <div className="col-md-12">
                                 <pre className="wrappedPre">{cmd.small_stdout}</pre>
                             </div>
@@ -198,18 +211,18 @@ class Table extends React.PureComponent {
                         </div>
                     <div className="btn-group btn-group-xs" role="group">
                         <button className="btn btn-unranked" type="button" >Hosts: {cmd.hosts.length}</button>
-                        <button className="btn btn-unranked" type="button" >Ifaces: {cmd.ifaces.length}</button>
-                        <button className="btn btn-unranked" type="button" >Services: {cmd.services.length}</button>
-                        <button className="btn btn-unranked" type="button" >Creds: {cmd.creds.length}</button>
+                        <button className="btn btn-unranked" type="button" disabled="disabled" >Ifaces: {cmd.ifaces.length}</button>
+                        <button className="btn btn-unranked" type="button" disabled="disabled" >Services: {cmd.services.length}</button>
+                        <button className="btn btn-unranked" type="button" disabled="disabled" >Creds: {cmd.creds.length}</button>
                         <button className="btn btn-unranked" type="button" >Vulns: {cmd.vulns.length}</button>
-                        <button className="btn btn-unranked" type="button" >Notes: {cmd.notes.length}</button>
+                        <button className="btn btn-unranked" type="button" disabled="disabled" >Notes: {cmd.notes.length}</button>
                     </div>
                     </td>
                     
                     </tr>
                             );
                     })}
-{/*                    <tr>
+                    <tr>
                         <th colSpan="6">
                             MORE DETAILS
                         </th>
@@ -218,7 +231,7 @@ class Table extends React.PureComponent {
                         <td colSpan="6" dangerouslySetInnerHTML={{
                             __html: output
                         }}></td>
-                    </tr>*/}
+                    </tr>
                 </tbody>
             </table>
         );

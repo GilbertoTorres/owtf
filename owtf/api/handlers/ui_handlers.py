@@ -71,7 +71,7 @@ class HTTPSessions(UIRequestHandler):
     def get(self, target_id=None):
         if not target_id:
             raise tornado.web.HTTPError(405)
-        self.render("sessions_manager.html", sessions_api_url=self.reverse_url('sessions_api_url', target_id),)
+        self.render("sessions_manager.html", sessions_api_url=self.reverse_url('sessions_ui_url', target_id),)
 
 
 class UrlLog(UIRequestHandler):

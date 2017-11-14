@@ -133,13 +133,6 @@ class Reporter(BaseComponent, ReporterInterface):
         else:
             OutputLines = ''.join(OutputLines)
 
-        _norm_file = os.path.join(os.path.dirname(AbsPath), self.config.get_val("NORMALIZED_FILE"))
-        _norm_json=None
-        jobj=None
-        if (os.path.isfile(_norm_file)):
-            _norm_json = open(_norm_file, "r").read()        
-            jobj = json.loads(_norm_json)
-
         table_vars = {
             "Name": Name,
             "CommandIntro": CommandIntro,
@@ -149,14 +142,10 @@ class Reporter(BaseComponent, ReporterInterface):
             "OutputLines": OutputLines,
             "TimeStr": TimeStr,
             "mNumLinesToShow": self.mNumLinesToShow,
-            "longOutput": longOutput,
-            "_norm_json": _norm_json,
-            "jobj": jobj
+            "longOutput": longOutput
         }
-        if _norm_json is None:
-            return self.Loader.load("command_dump.html").generate(**table_vars)
-        else:
-            return self.Loader.load("command_dump_norm.html").generate(**table_vars)
+    
+        return self.Loader.load("command_dump.html").generate(**table_vars)
 
     def URLsFromStr(self, TimeStr, VisitURLs, URLList, NumFound):
         html_content = self.Loader.load("urls_from_str.html").generate(TimeStr=TimeStr, VisitURLs=VisitURLs,

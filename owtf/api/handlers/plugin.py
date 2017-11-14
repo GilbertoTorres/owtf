@@ -73,14 +73,15 @@ class PluginNameOutput(APIRequestHandler):
 
             dict_to_return = {}
             for item in results:
-                if (dict_to_return.has_key(item['plugin_code'])):
-                    dict_to_return[item['plugin_code']]['data'].append(item)
+                plugin_code = item['plugin']['code']
+                if (dict_to_return.has_key(plugin_code)):
+                    dict_to_return[plugin_code]['data'].append(item)
                 else:
                     ini_list = []
                     ini_list.append(item)
-                    dict_to_return[item["plugin_code"]] = {}
-                    dict_to_return[item["plugin_code"]]["data"] = ini_list
-                    dict_to_return[item["plugin_code"]]["details"] = groups[item["plugin_code"]]
+                    dict_to_return[plugin_code] = {}
+                    dict_to_return[plugin_code]["data"] = ini_list
+                    dict_to_return[plugin_code]["details"] = groups[plugin_code]
             dict_to_return = collections.OrderedDict(sorted(dict_to_return.items()))
             if results:
                 self.write(dict_to_return)

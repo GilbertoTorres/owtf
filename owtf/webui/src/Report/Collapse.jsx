@@ -26,14 +26,14 @@ class Collapse extends React.Component {
                             <a className="btn" disabled="disabled">Type:</a>
                         </li>
                         {pluginData.map(function(obj) {
-                            if ((selectedType.length === 0 || selectedType.indexOf(obj['plugin_type']) !== -1) && (selectedGroup.length === 0 || selectedGroup.indexOf(obj['plugin_group']) !== -1) && (selectedRank.length === 0 || selectedRank.indexOf(obj['user_rank']) !== -1) && (selectedOwtfRank.length === 0 || selectedOwtfRank.indexOf(obj['owtf_rank']) !== -1) && (selectedStatus.length === 0 || selectedStatus.indexOf(obj['status']) !== -1)) {
-                                var pkey = obj['plugin_type'] + '_' + obj['plugin_code'];
+                            if ((selectedType.length === 0 || selectedType.indexOf(obj.plugin.type) !== -1) && (selectedGroup.length === 0 || selectedGroup.indexOf(obj.plugin.group) !== -1) && (selectedRank.length === 0 || selectedRank.indexOf(obj['user_rank']) !== -1) && (selectedOwtfRank.length === 0 || selectedOwtfRank.indexOf(obj['owtf_rank']) !== -1) && (selectedStatus.length === 0 || selectedStatus.indexOf(obj['status']) !== -1)) {
+                                var pkey = obj.plugin.type + '_' + obj.plugin.code;
                                 return (
-                                    <li key={pkey} className={pactive === obj['plugin_type']
+                                    <li key={pkey} className={pactive === obj.plugin.type
                                         ? "active"
                                         : ""}>
-                                        <a href={"#" + obj['plugin_group'] + '_' + obj['plugin_type'] + '_' + obj['plugin_code']} data-toggle="tab">
-                                            {obj['plugin_type'].split('_').join(' ')}
+                                        <a href={"#" + obj.plugin.group + '_' + obj.plugin.type + '_' + obj.plugin.code} data-toggle="tab">
+                                            {obj.plugin.type.split('_').join(' ')}
                                         </a>
                                     </li>
                                 );
@@ -48,16 +48,16 @@ class Collapse extends React.Component {
                     <br/>
                     <div className="tab-content">
                         {pluginData.map(function(obj) {
-                            if ((selectedType.length === 0 || selectedType.indexOf(obj['plugin_type']) !== -1) && (selectedGroup.length === 0 || selectedGroup.indexOf(obj['plugin_group']) !== -1) && (selectedRank.length === 0 || selectedRank.indexOf(obj['user_rank']) !== -1)) {
-                                var pkey = obj['plugin_type'] + '_' + obj['plugin_code'];
+                            if ((selectedType.length === 0 || selectedType.indexOf(obj.plugin.type) !== -1) && (selectedGroup.length === 0 || selectedGroup.indexOf(obj.plugin.group) !== -1) && (selectedRank.length === 0 || selectedRank.indexOf(obj['user_rank']) !== -1)) {
+                                var pkey = obj.plugin.type + '_' + obj.plugin.code;
                                 return (
-                                    <div className={pactive === obj['plugin_type']
+                                    <div className={pactive === obj.plugin.type
                                         ? "tab-pane active"
-                                        : "tab-pane"} id={obj['plugin_group'] + '_' + obj['plugin_type'] + '_' + obj['plugin_code']} key={"tab" + pkey}>
+                                        : "tab-pane"} id={obj.plugin.group + '_' + obj.plugin.type + '_' + obj.plugin.code} key={"tab" + pkey}>
                                         <div className="pull-left" data-toggle="buttons-checkbox">
                                             <blockquote>
-                                                <h4>{obj['plugin_type'].split('_').join(' ').charAt(0).toUpperCase() + obj['plugin_type'].split('_').join(' ').slice(1)}</h4>
-                                                <small>{obj['plugin_code']}</small>
+                                                <h4>{obj.plugin.type.split('_').join(' ').charAt(0).toUpperCase() + obj.plugin.type.split('_').join(' ').slice(1)}</h4>
+                                                <small>{obj.plugin.code}</small>
                                             </blockquote>
                                         </div>
                                         <div data-toggle="buttons">
