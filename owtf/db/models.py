@@ -13,6 +13,8 @@ from sqlalchemy import UniqueConstraint
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy_utils import generic_relationship
 
+import json
+
 
 
 Base = declarative_base()
@@ -517,7 +519,7 @@ class Iface(Base):
     def to_dict_full(self):
         return dict(
             name=self.name,
-            os=self.mac,
+            mac=self.mac,
             services=[service.to_dict_full() for service in self.services]
             )
 
@@ -550,16 +552,27 @@ class Service(Base):
         secondary=cmd_service,
         back_populates="services")
 
+    
+    def parsed_ports(self):
+        ports = []
+        if self.ports:
+            ports = json.loads(self.ports)
+        return ports
+
     def to_dict(self):
+
         return dict(
             name=self.name,
-            ports=self.ports,
+            ports=self.parsed_ports(),
             )
 
     def to_dict_full(self):
         return dict(
             name=self.name,
-            ports=self.ports,
+            protocol=self.protocol,
+            ports=self.parsed_ports(),
+            version=self.version,
+            status=self.status,
             vulns=[vuln.to_dict_full() for vuln in self.vulns]
             )
 

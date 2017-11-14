@@ -104,7 +104,7 @@ class ReportCommandsHostsHandler(APIRequestHandler):
         
         result = self.get_component("db_report").get_hosts_for_command(command_id, full=True)
         if result:
-            self.write(result)
+            self.write(dict(hosts=result))
         else:
             raise tornado.web.HTTPError(400)
 

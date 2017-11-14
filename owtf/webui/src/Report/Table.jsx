@@ -30,7 +30,7 @@ class Table extends React.PureComponent {
 
         this.state = {
           modalIsOpen: false,
-          modalData: ""
+          modalData: null
         };
 
         this.openModal = this.openModal.bind(this);
@@ -63,10 +63,11 @@ class Table extends React.PureComponent {
             apiUrl = REPORT_API_URI + "targets/" + id + "/hosts/"
         }
         fetch(apiUrl)
+          .then((response) => response.json())
           .then((data) => {
-            // Here you get the data to modify as you please
-                this.setState({modalIsOpen: true, modalData: data});
-            })
+            console.log("data is:", data);
+            this.setState({modalIsOpen: true, modalData: data});
+          })
     }
 
     afterOpenModal() {
@@ -77,6 +78,58 @@ class Table extends React.PureComponent {
     closeModal() {
         this.setState({modalIsOpen: false});
     }
+
+    renderHosts(hosts) {
+        let elems = hosts.map((host, idx) => {
+                    return (<ul>
+                                <li><b>name: </b>{host.name}</li>
+                                <li><b>os: </b>{host.os}</li>
+                                <li><b>Ifaces: </b>{this.renderIfaces(host.ifaces)}</li>
+                        </ul>)
+                    })
+        return <div>{elems}</div>
+            
+    }
+
+    renderIfaces(ifaces) {
+
+        let elems = ifaces.map((iface, idx) => {
+            return(<ul>
+                    <li><b>name: </b>{iface.name}</li>
+                    <li><b>mac: </b>{iface.mac}</li>
+                    <li><b>Services: </b>{this.renderServices(iface.services)}</li>
+                </ul>)
+        })
+        return elems
+    }
+
+    renderServices(services) {
+
+
+        let elems = services.map((service, idx) => {
+            let ports = service.ports.join(",")
+            return(<ul>
+                    <li><b>name: </b>{service.name}</li>
+                    <li><b>version: </b>{service.version}</li>
+                    <li><b>protocol: </b>{service.protocol}</li>
+                    <li><b>ports: </b>{ports}</li>
+                    <li><b>Vulns: </b>{this.renderVulns(service.vulns)}</li>
+                </ul>)
+        })
+        return elems
+    }
+
+    renderVulns(vulns) {
+
+        let elems = vulns.map((vuln, idx) => {
+            return(<ul>
+                    <li><b>name: </b>{vuln.name}</li>
+                    <li><b>severity: </b>{vuln.severity}</li>
+                </ul>)
+        })
+        return elems
+    }
+
 
     /**
       * Function responsible for handling user_notes editor.
@@ -121,8 +174,6 @@ class Table extends React.PureComponent {
         var deletePluginOutput = this.context.deletePluginOutput;
         var postToWorkList = this.context.postToWorkList;
 
-
-
         return (
             <div>
                 <Modal
@@ -133,16 +184,14 @@ class Table extends React.PureComponent {
                   contentLabel="Example Modal"
                 >
 
-                  <h2 ref={subtitle => this.subtitle = subtitle}>Hello</h2>
+                  <h2 ref={subtitle => this.subtitle = subtitle}>Info Host</h2>
                   <button onClick={this.closeModal}>close</button>
-                  <div>I am a modal</div>
-                  <form>
-                    <input />
-                    <button>tab navigation</button>
-                    <button>stays</button>
-                    <button>inside</button>
-                    <button>the modal</button>
-                  </form>
+                  {(() => {
+                    if (this.state.modalData) {
+                        console.log("data" ,this.state.modalData)
+                        return this.renderHosts(this.state.modalData.hosts)
+                    }
+                    })()}
                 </Modal>
                 <table className="table table-bordered table-striped table-hover table-report">
                     <thead>
@@ -243,7 +292,7 @@ class Table extends React.PureComponent {
                                       <button className="btn btn-unranked" type="button" disabled="disabled" >Ifaces: {obj.ifaces.length}</button>
                                       <button className="btn btn-unranked" type="button" disabled="disabled" >Services: {obj.services.length}</button>
                                       <button className="btn btn-unranked" type="button" disabled="disabled" >Creds: {obj.creds.length}</button>
-                                      <button className="btn btn-unranked" type="button" >Vulns: {obj.vulns.length}</button>
+                                      <button className="btn btn-unranked" type="button" disabled="disabled" >Vulns: {obj.vulns.length}</button>
                                       <button className="btn btn-unranked" type="button" disabled="disabled" >Notes: {'X'}</button>
                                 </div>
                             </td>
@@ -289,7 +338,7 @@ class Table extends React.PureComponent {
                                         <button className="btn btn-unranked" type="button" disabled="disabled" >Ifaces: {cmd.ifaces.length}</button>
                                         <button className="btn btn-unranked" type="button" disabled="disabled" >Services: {cmd.services.length}</button>
                                         <button className="btn btn-unranked" type="button" disabled="disabled" >Creds: {cmd.creds.length}</button>
-                                        <button className="btn btn-unranked" type="button" >Vulns: {cmd.vulns.length}</button>
+                                        <button className="btn btn-unranked" type="button" disabled="disabled" >Vulns: {cmd.vulns.length}</button>
                                         <button className="btn btn-unranked" type="button" disabled="disabled" >Notes: {cmd.notes.length}</button>
                                     </div>
                                 );
