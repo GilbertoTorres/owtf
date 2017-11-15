@@ -9,6 +9,8 @@ import json
 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import and_
+from sqlalchemy.sql import text
+
 
 
 from owtf.dependency_management.dependency_resolver import BaseComponent
@@ -142,7 +144,10 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         :return:
         :rtype:
         """
-        query = self.db.session.query(PluginOutput).join(Plugin).filter(PluginOutput.target_id == target_id)
+        query = self.db.session.query(PluginOutput) \
+                        .join(Plugin) \
+                        .filter(PluginOutput.target_id == target_id) \
+                        .filter(PluginOutput.active == True)
         if filter_data.get("target_id", None):
             query.filter(Plugin.target_id == filter_data["target_id"])
         if filter_data.get("plugin_key", None):
@@ -215,6 +220,7 @@ class POutputDB(BaseComponent, PluginOutputInterface):
             filter_data = {}
         self.target.set_target(target_id)
         query = self.gen_query(filter_data, target_id)
+        query = query.order_by(PluginOutput.date_time.desc())
         results = query.all()
         return self.get_output_dicts(results, target_id=target_id, inc_output=inc_output)
 
@@ -287,6 +293,7 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         """
         plugin_dict = {"plugin_group": plugin_group, "plugin_type": plugin_type, "plugin_code": plugin_code}
         query = self.gen_query(plugin_dict, target_id)
+        query = query.order_by(PluginOutput.date_time.desc())
         obj = query.first()
         if obj:
             try:
@@ -335,7 +342,10 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         :rtype: None
         """
 
-        instance = self.db.session.query(PluginOutput).join(Plugin).filter(and_(Plugin.key == plugin["key"], PluginOutput.target_id == target_id)).first()
+        instance = self.db.session.query(PluginOutput).join(Plugin) \
+                        .filter(and_(Plugin.key == plugin["key"], PluginOutput.target_id == target_id)) \
+                        .order_by(PluginOutput.date_time.desc()) \
+                        .first()
         if instance:
             instance.output=json.dumps(output),
             instance.start_time=plugin["start"],
@@ -375,7 +385,9 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         :return: None
         :rtype: None
         """
-        query = self.db.session.query(PluginOutput).join(Plugin).filter(and_(Plugin.key == key, PluginOutput.target_id == target_id))
+        query = self.db.session.query(PluginOutput) \
+                        .filter(and_(PluginOutput.plugin_key == key, PluginOutput.target_id == target_id)) \
+                        .order_by(PluginOutput.date_time.desc())
         # query = self.db.session.query(PluginOutput).filter_by(plugin_key=key)
         instance = query.first()
         if instance:
@@ -384,6 +396,41 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         plugin_output = PluginOutput(
             target_id=target_id,
             plugin_key=key,
+            )
+        self.db.session.add(plugin_output)
+        try:
+            self.db.session.commit()
+        except SQLAlchemyError as e:
+            self.db.session.rollback()
+            raise e
+        return plugin_output
+
+
+    @target_required
+    def create(self, key, target_id=None):
+        """Save into the database the command output of the plugin.
+
+        :param plugin: Plugin dict
+        :type plugin: `dict`
+        :param output: Plugin output
+        :type output: `str`
+        :param target_id: target ID
+        :type target_id: `int`
+        :return: None
+        :rtype: None
+        """
+        
+        # olds = self.db.session.query(PluginOutput)\
+        #     .filter(and_(PluginOutput.plugin_key == key, PluginOutput.target_id == target_id)) \
+        #     .update().values(active=False)
+
+        sql = text('UPDATE plugin_outputs SET active=:active WHERE plugin_key=:key AND target_id=:target')
+        self.db.engine.execute(sql, active=False, key=key, target=target_id)
+
+        plugin_output = PluginOutput(
+            target_id=target_id,
+            plugin_key=key,
+            active=True
             )
         self.db.session.add(plugin_output)
         try:
@@ -408,7 +455,11 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         :return: None
         :rtype: None
         """
-        instance = self.db.session.query(PluginOutput).filter_by(plugin_key=plugin["key"], target_id=target_id).first()
+        instance = self.db.session.query(PluginOutput) \
+                        .filter(and_(PluginOutput.plugin_key == plugin["key"], PluginOutput.target_id == target_id)) \
+                        .order_by(PluginOutput.date_time.desc()) \
+                        .first()
+
         if instance:
             instance.output=json.dumps(output),
             instance.error=message,

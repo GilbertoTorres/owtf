@@ -168,6 +168,8 @@ class PluginOutput(Base):
     user_rank = Column(Integer, nullable=True, default=-1)
     owtf_rank = Column(Integer, nullable=True, default=-1)
     output_path = Column(String, nullable=True)
+    
+    active = Column(Boolean, default=True)
 
 
     @hybrid_property
@@ -176,8 +178,6 @@ class PluginOutput(Base):
             return self.end_time - self.start_time
         except TypeError:
             return datetime.timedelta(0)
-
-    __table_args__ = (UniqueConstraint('plugin_key', 'target_id'),)
 
 
 cmd_host = Table('command_register_host', Base.metadata,
