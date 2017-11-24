@@ -8,6 +8,7 @@ import collections
 from time import gmtime, strftime
 from collections import defaultdict
 
+
 import tornado.gen
 import tornado.web
 import tornado.httpclient
@@ -16,6 +17,8 @@ from owtf.lib import exceptions
 from owtf.constants import RANKS
 from owtf.lib.general import cprint
 from owtf.api.base import APIRequestHandler
+from owtf.db.models import Vuln, Command
+from sqlalchemy import and_
 
 
 class ReportExportHandler(APIRequestHandler):
@@ -103,8 +106,40 @@ class ReportCommandsHostsHandler(APIRequestHandler):
             raise tornado.web.HTTPError(400)
         
         result = self.get_component("db_report").get_hosts_for_command(command_id, full=True)
+        db = self.get_component("db")
+        # self..session.query(PluginOutput).filter_by(target_id=target_id, plugin_key=plugin_key).count()
+        
+        severity_passing = db.session.query(Vuln) \
+                        .join(Command, Vuln.commands) \
+                        .filter(and_(Command.id == command_id, Vuln.severity == "passing")).count()
+        severity_info = db.session.query(Vuln) \
+                        .join(Command, Vuln.commands) \
+                        .filter(and_(Command.id == command_id, Vuln.severity == "info")).count()
+        severity_low = db.session.query(Vuln) \
+                        .join(Command, Vuln.commands) \
+                        .filter(and_(Command.id == command_id, Vuln.severity == "low")).count()
+        severity_medium = db.session.query(Vuln) \
+                        .join(Command, Vuln.commands) \
+                        .filter(and_(Command.id == command_id, Vuln.severity == "medium")).count()
+        severity_high = db.session.query(Vuln) \
+                        .join(Command, Vuln.commands) \
+                        .filter(and_(Command.id == command_id, Vuln.severity == "high")).count()
+        severity_critical = db.session.query(Vuln) \
+                        .join(Command, Vuln.commands) \
+                        .filter(and_(Command.id == command_id, Vuln.severity == "critical")).count()
+
+        stats = dict(
+            vulnerabilities=dict(
+                severity=dict(
+                    passing=severity_passing,
+                    info=severity_info,
+                    low=severity_low,
+                    medium=severity_medium,
+                    high=severity_high,
+                    critical=severity_critical,
+                    )))
         if result:
-            self.write(dict(hosts=result))
+            self.write(dict(hosts=result, stats=stats))
         else:
             raise tornado.web.HTTPError(400)
 
@@ -127,7 +162,39 @@ class ReportPluginOutputsHostsHandler(APIRequestHandler):
             raise tornado.web.HTTPError(400)
         
         result = self.get_component("db_report").get_hosts_for_plugin_output(plugin_output_id, full=True)
+        db = self.get_component("db")
+        # self..session.query(PluginOutput).filter_by(target_id=target_id, plugin_key=plugin_key).count()
+        
+        severity_passing = db.session.query(Vuln) \
+                        .join(Command, Vuln.commands) \
+                        .filter(and_(Command.plugin_output_id == plugin_output_id, Vuln.severity == "passing")).count()
+        severity_info = db.session.query(Vuln) \
+                        .join(Command, Vuln.commands) \
+                        .filter(and_(Command.plugin_output_id == plugin_output_id, Vuln.severity == "info")).count()
+        severity_low = db.session.query(Vuln) \
+                        .join(Command, Vuln.commands) \
+                        .filter(and_(Command.plugin_output_id == plugin_output_id, Vuln.severity == "low")).count()
+        severity_medium = db.session.query(Vuln) \
+                        .join(Command, Vuln.commands) \
+                        .filter(and_(Command.plugin_output_id == plugin_output_id, Vuln.severity == "medium")).count()
+        severity_high = db.session.query(Vuln) \
+                        .join(Command, Vuln.commands) \
+                        .filter(and_(Command.plugin_output_id == plugin_output_id, Vuln.severity == "high")).count()
+        severity_critical = db.session.query(Vuln) \
+                        .join(Command, Vuln.commands) \
+                        .filter(and_(Command.plugin_output_id == plugin_output_id, Vuln.severity == "critical")).count()
+
+        stats = dict(
+            vulnerabilities=dict(
+                severity=dict(
+                    passing=severity_passing,
+                    info=severity_info,
+                    low=severity_low,
+                    medium=severity_medium,
+                    high=severity_high,
+                    critical=severity_critical,
+                    )))
         if result:
-            self.write(dict(hosts=result))
+            self.write(dict(hosts=result, stats=stats))
         else:
             raise tornado.web.HTTPError(400)

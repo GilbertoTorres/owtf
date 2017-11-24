@@ -58,8 +58,9 @@ class Normalizer(BaseComponent, NormalizerInterface):
     def process(self, cmd, filename, session_id=None):
         """Adds normalized data to DB
 
-        :param command: Filename with json normalized output
-        :type command: string
+        :param cmd: Filename with json normalized output
+        :param filename: Filename with json normalized output
+        :type session_id: string
         :return: None
         :rtype: None
         """

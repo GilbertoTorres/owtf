@@ -1,6 +1,7 @@
 import React from 'react';
 import Modal from 'react-modal';
 import {TARGET_API_URI, REPORT_API_URI} from '../constants.jsx';
+import {Pie} from 'react-chartjs';
 
 /**
   * React Component for Table in collapse. It is child component used by Collapse Component.
@@ -30,7 +31,45 @@ class Table extends React.PureComponent {
 
         this.state = {
           modalIsOpen: false,
-          modalData: null
+          modalData: null, 
+          pieData: [
+              {
+                color: "#32CD32",
+                id: 0,
+                value: 0,
+                label: "Passing"
+              },
+              {
+                color: "#b1d9f4",
+                id: 1,
+                value: 0,
+                label: "Info"
+              },
+              {
+                color: "#337ab7",
+                id: 2,
+                value: 0,
+                label: "Low"
+              },
+              {
+                color: "#ffcc00",
+                id: 3,
+                value: 0,
+                label: "Medium"
+              },
+              {
+                color: "#c12e2a",
+                id: 4,
+                value: 0,
+                label: "High"
+              },
+              {
+                color: "#800080",
+                id: 5,
+                value: 0,
+                label: "Critical"
+              }
+            ]
         };
 
         this.openModal = this.openModal.bind(this);
@@ -66,13 +105,73 @@ class Table extends React.PureComponent {
           .then((response) => response.json())
           .then((data) => {
             console.log("data is:", data);
-            this.setState({modalIsOpen: true, modalData: data});
+
+            var severity = data.stats.vulnerabilities.severity;
+            var pieData;
+            if ((severity.passing + 
+                    severity.info + 
+                        severity.low + 
+                        severity.medium + 
+                        severity.high + 
+                        severity.critical) == 0) {
+                
+                pieData = [
+                  {
+                    color: "blue",
+                    id: 0,
+                    value: 1,
+                    label: "No vulnerabilities found"
+                  }
+                ];
+            } else {
+                pieData = [
+                  {
+                    color: "#32CD32",
+                    id: 0,
+                    value: severity.passing,
+                    label: "Passing"
+                  },
+                  {
+                    color: "#b1d9f4",
+                    id: 1,
+                    value: severity.info,
+                    label: "Info"
+                  },
+                  {
+                    color: "#337ab7",
+                    id: 2,
+                    value: severity.low,
+                    label: "Low"
+                  },
+                  {
+                    color: "#ffcc00",
+                    id: 3,
+                    value: severity.medium,
+                    label: "Medium"
+                  },
+                  {
+                    color: "#c12e2a",
+                    id: 4,
+                    value: severity.high,
+                    label: "High"
+                  },
+                  {
+                    color: "#800080",
+                    id: 5,
+                    value: severity.critical,
+                    label: "Critical"
+                  }
+                ];
+            }
+
+
+            this.setState({modalIsOpen: true, modalData: data, pieData: pieData});
           })
     }
 
     afterOpenModal() {
         // references are now sync'd and can be accessed.
-        this.subtitle.style.color = '#f00';
+        this.subtitle.style.color = '#000';
     }
 
     closeModal() {
@@ -183,7 +282,6 @@ class Table extends React.PureComponent {
                   style={customStyles}
                   contentLabel="Example Modal"
                 >
-
                   <h2 ref={subtitle => this.subtitle = subtitle}>Info Host</h2>
                   <button onClick={this.closeModal}>close</button>
                   {(() => {
@@ -192,6 +290,49 @@ class Table extends React.PureComponent {
                         return this.renderHosts(this.state.modalData.hosts)
                     }
                     })()}
+                    <div className="row-fluid">
+                        <h4>Hosts</h4>
+                        <div className="col-md-6">
+                            <h5>Hosts</h5>
+                            <table className="table table-bordered table-striped table-hover table-report">
+                            <tr>
+                                <th>Host</th><th>Services</th><th>OS</th>
+                            </tr>
+                            <tr>
+                                <td>192.168.0.1</td><td>9</td><td>Linux</td>
+                            </tr>
+                            </table>
+                        </div>
+                        <div className="col-md-6">
+                            <h5>Credentials</h5>
+                            <table className="table table-bordered table-striped table-hover table-report">
+                            <tr>
+                                <th>Username</th><th>Password</th><th>Service</th>
+                            </tr>
+                            <tr>
+                                <td>foo</td><td>nar</td><td>ftpd</td>
+                            </tr>
+                            </table>
+                        </div>
+                    </div>                    
+                    <div className="row-fluid">
+                        <h4>Vulnerabilities</h4>
+                        <div className="col-md-3">
+                            <h5>Vulnerabilities by severity</h5>
+                            <Pie data={this.state.pieData} width="175%" height="175%"/>
+                        </div>
+                        <div className="col-md-9">
+                            <h5>Vulnerabilities Table</h5>
+                            <table className="table table-bordered table-striped table-hover table-report">
+                            <tr>
+                                <th>Name</th><th>Severity</th><th>OS</th>
+                            </tr>
+                            <tr>
+                                <td>192.168.0.1</td><td>9</td><td>Linux</td>
+                            </tr>
+                            </table>
+                        </div>
+                    </div>                    
                 </Modal>
                 <table className="table table-bordered table-striped table-hover table-report">
                     <thead>
