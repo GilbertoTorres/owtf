@@ -1,23 +1,17 @@
 import React from 'react';
-import Modal from 'react-modal';
 import {TARGET_API_URI, REPORT_API_URI} from '../constants.jsx';
 import {Pie} from 'react-chartjs';
+import {ReportEnhancementModal,
+        VulnerabilityCountPieChart,
+        HostsEnhancementTable,
+        ServicesEnhancementTable,
+        VulnsEnhancementTable,
+        CredsEnhancementTable,
+        NotesEnhancementTable} from './ReportEnhancement.jsx';
 
 /**
   * React Component for Table in collapse. It is child component used by Collapse Component.
   */
-
-const customStyles = {
-  content : {
-    top                   : '50%',
-    left                  : '50%',
-    right                 : 'auto',
-    bottom                : 'auto',
-    marginRight           : '-50%',
-    transform             : 'translate(-50%, -50%)'
-  }
-};
-
 class Table extends React.PureComponent {
 
   /**
@@ -30,51 +24,12 @@ class Table extends React.PureComponent {
         super();
 
         this.state = {
+          objType: null,
+          objId: null,
           modalIsOpen: false,
-          modalData: null, 
-          pieData: [
-              {
-                color: "#32CD32",
-                id: 0,
-                value: 0,
-                label: "Passing"
-              },
-              {
-                color: "#b1d9f4",
-                id: 1,
-                value: 0,
-                label: "Info"
-              },
-              {
-                color: "#337ab7",
-                id: 2,
-                value: 0,
-                label: "Low"
-              },
-              {
-                color: "#ffcc00",
-                id: 3,
-                value: 0,
-                label: "Medium"
-              },
-              {
-                color: "#c12e2a",
-                id: 4,
-                value: 0,
-                label: "High"
-              },
-              {
-                color: "#800080",
-                id: 5,
-                value: 0,
-                label: "Critical"
-              }
-            ]
         };
 
         this.openModal = this.openModal.bind(this);
-        this.afterOpenModal = this.afterOpenModal.bind(this);
-        this.closeModal = this.closeModal.bind(this);
     }
 
     patchUserNotes(group, type, code, user_notes) {
@@ -93,142 +48,8 @@ class Table extends React.PureComponent {
     };
 
     openModal(type, id) {
-        var apiUrl;
-        if (type == "command") {
-            apiUrl = REPORT_API_URI + "commands/" + id + "/hosts/"
-        } else if (type == "plugin_output") {
-            apiUrl = REPORT_API_URI + "plugin_outputs/" + id + "/hosts/"
-        } else if (type == "target") {
-            apiUrl = REPORT_API_URI + "targets/" + id + "/hosts/"
-        }
-        fetch(apiUrl)
-          .then((response) => response.json())
-          .then((data) => {
-            console.log("data is:", data);
-
-            var severity = data.stats.vulnerabilities.severity;
-            var pieData;
-            if ((severity.passing + 
-                    severity.info + 
-                        severity.low + 
-                        severity.medium + 
-                        severity.high + 
-                        severity.critical) == 0) {
-                
-                pieData = [
-                  {
-                    color: "blue",
-                    id: 0,
-                    value: 1,
-                    label: "No vulnerabilities found"
-                  }
-                ];
-            } else {
-                pieData = [
-                  {
-                    color: "#32CD32",
-                    id: 0,
-                    value: severity.passing,
-                    label: "Passing"
-                  },
-                  {
-                    color: "#b1d9f4",
-                    id: 1,
-                    value: severity.info,
-                    label: "Info"
-                  },
-                  {
-                    color: "#337ab7",
-                    id: 2,
-                    value: severity.low,
-                    label: "Low"
-                  },
-                  {
-                    color: "#ffcc00",
-                    id: 3,
-                    value: severity.medium,
-                    label: "Medium"
-                  },
-                  {
-                    color: "#c12e2a",
-                    id: 4,
-                    value: severity.high,
-                    label: "High"
-                  },
-                  {
-                    color: "#800080",
-                    id: 5,
-                    value: severity.critical,
-                    label: "Critical"
-                  }
-                ];
-            }
-
-
-            this.setState({modalIsOpen: true, modalData: data, pieData: pieData});
-          })
+        this.setState({modalIsOpen: true, objType: type, objId: id});
     }
-
-    afterOpenModal() {
-        // references are now sync'd and can be accessed.
-        this.subtitle.style.color = '#000';
-    }
-
-    closeModal() {
-        this.setState({modalIsOpen: false});
-    }
-
-    renderHosts(hosts) {
-        let elems = hosts.map((host, idx) => {
-                    return (<ul>
-                                <li><b>name: </b>{host.name}</li>
-                                <li><b>os: </b>{host.os}</li>
-                                <li><b>Ifaces: </b>{this.renderIfaces(host.ifaces)}</li>
-                        </ul>)
-                    })
-        return <div>{elems}</div>
-            
-    }
-
-    renderIfaces(ifaces) {
-
-        let elems = ifaces.map((iface, idx) => {
-            return(<ul>
-                    <li><b>name: </b>{iface.name}</li>
-                    <li><b>mac: </b>{iface.mac}</li>
-                    <li><b>Services: </b>{this.renderServices(iface.services)}</li>
-                </ul>)
-        })
-        return elems
-    }
-
-    renderServices(services) {
-
-
-        let elems = services.map((service, idx) => {
-            let ports = service.ports.join(",")
-            return(<ul>
-                    <li><b>name: </b>{service.name}</li>
-                    <li><b>version: </b>{service.version}</li>
-                    <li><b>protocol: </b>{service.protocol}</li>
-                    <li><b>ports: </b>{ports}</li>
-                    <li><b>Vulns: </b>{this.renderVulns(service.vulns)}</li>
-                </ul>)
-        })
-        return elems
-    }
-
-    renderVulns(vulns) {
-
-        let elems = vulns.map((vuln, idx) => {
-            return(<ul>
-                    <li><b>name: </b>{vuln.name}</li>
-                    <li><b>severity: </b>{vuln.severity}</li>
-                </ul>)
-        })
-        return elems
-    }
-
 
     /**
       * Function responsible for handling user_notes editor.
@@ -275,65 +96,7 @@ class Table extends React.PureComponent {
 
         return (
             <div>
-                <Modal
-                  isOpen={this.state.modalIsOpen}
-                  onAfterOpen={this.afterOpenModal}
-                  onRequestClose={this.closeModal}
-                  style={customStyles}
-                  contentLabel="Example Modal"
-                >
-                  <h2 ref={subtitle => this.subtitle = subtitle}>Info Host</h2>
-                  <button onClick={this.closeModal}>close</button>
-                  {(() => {
-                    if (this.state.modalData) {
-                        console.log("data" ,this.state.modalData)
-                        return this.renderHosts(this.state.modalData.hosts)
-                    }
-                    })()}
-                    <div className="row-fluid">
-                        <h4>Hosts</h4>
-                        <div className="col-md-6">
-                            <h5>Hosts</h5>
-                            <table className="table table-bordered table-striped table-hover table-report">
-                            <tr>
-                                <th>Host</th><th>Services</th><th>OS</th>
-                            </tr>
-                            <tr>
-                                <td>192.168.0.1</td><td>9</td><td>Linux</td>
-                            </tr>
-                            </table>
-                        </div>
-                        <div className="col-md-6">
-                            <h5>Credentials</h5>
-                            <table className="table table-bordered table-striped table-hover table-report">
-                            <tr>
-                                <th>Username</th><th>Password</th><th>Service</th>
-                            </tr>
-                            <tr>
-                                <td>foo</td><td>nar</td><td>ftpd</td>
-                            </tr>
-                            </table>
-                        </div>
-                    </div>                    
-                    <div className="row-fluid">
-                        <h4>Vulnerabilities</h4>
-                        <div className="col-md-3">
-                            <h5>Vulnerabilities by severity</h5>
-                            <Pie data={this.state.pieData} width="175%" height="175%"/>
-                        </div>
-                        <div className="col-md-9">
-                            <h5>Vulnerabilities Table</h5>
-                            <table className="table table-bordered table-striped table-hover table-report">
-                            <tr>
-                                <th>Name</th><th>Severity</th><th>OS</th>
-                            </tr>
-                            <tr>
-                                <td>192.168.0.1</td><td>9</td><td>Linux</td>
-                            </tr>
-                            </table>
-                        </div>
-                    </div>                    
-                </Modal>
+                <ReportEnhancementModal modalIsOpen={this.state.modalIsOpen} objType={this.state.objType} objId={this.state.objId}  />
                 <table className="table table-bordered table-striped table-hover table-report">
                     <thead>
                         <tr>

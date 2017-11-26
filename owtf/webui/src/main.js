@@ -3,6 +3,11 @@
 // font-awesome is not being loaded in a fresh install
 import "font-awesome/css/font-awesome.css";
 
+import 'react-table/react-table.css'
+import 'react-treeview/react-treeview.css'
+
+
+
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Home from './Home/Home.jsx';

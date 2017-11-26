@@ -20,6 +20,8 @@ from owtf.api.base import APIRequestHandler
 from owtf.db.models import Vuln, Command
 from sqlalchemy import and_
 
+from random import randint
+
 
 class ReportExportHandler(APIRequestHandler):
     """
@@ -198,3 +200,44 @@ class ReportPluginOutputsHostsHandler(APIRequestHandler):
             self.write(dict(hosts=result, stats=stats))
         else:
             raise tornado.web.HTTPError(400)
+
+
+class ReportStatsTableVulnsHandler(APIRequestHandler):
+    """
+    Class handling API methods related to export report funtionality.
+    This API returns all information about a target scan present in OWTF.
+    :raise InvalidTargetReference: If target doesn't exists.
+    :raise InvalidParameterType: If some unknown parameter in `filter_data`.
+    """
+    # TODO: Add API documentation.
+
+    SUPPORTED_METHODS = ['GET']
+
+    def get(self, entity, id):
+        """
+        REST API - /api/targets/<target_id>/export/ returns JSON(data) for template.
+        """
+        if not entity or not id:
+            raise tornado.web.HTTPError(400)
+        
+        db = self.get_component("db")
+        # self..session.query(PluginOutput).filter_by(target_id=target_id, plugin_key=plugin_key).count()
+        
+        query = db.session.query(Vuln) \
+                        .join(Command, Vuln.commands)
+
+        if entity == "plugin_outputs":
+            query = query.filter(and_(Command.plugin_output_id == id))
+        elif entity == "commands":
+            query = query.filter(and_(Command.id == id))
+        else:
+            raise Error("Invalid entity for api!")
+
+
+        objs = query.all()
+        objs_dict = [obj.to_dict() for obj in objs]
+        # FIXME: update with real data
+        for obj in objs_dict:
+            obj.update({'count': randint(0,5)}
+                )
+        self.write(dict(objs=objs_dict))
