@@ -501,7 +501,8 @@ export class ReportEnhancementModal extends React.PureComponent {
                   contentLabel="Example Modal"
                 >
                   <div className="text-center">
-                    <h2 ref={subtitle => this.subtitle = subtitle}>Findings Report OWTF<button onClick={this.closeModal}>close</button></h2>
+                    <h2 ref={subtitle => this.subtitle = subtitle}>Findings Report OWTF</h2>
+                    <button onClick={this.closeModal}>close</button>
                     {/*    <div className="btn-group btn-group-sm" role="group">
                               <button className="btn btn-unranked" type="button" disabled="disabled" >Hosts: {'0'}</button>
                               <button className="btn btn-unranked" type="button" disabled="disabled" >Ifaces: {'0'}</button>

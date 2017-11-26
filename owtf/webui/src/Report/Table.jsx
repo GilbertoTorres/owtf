@@ -191,14 +191,27 @@ class Table extends React.PureComponent {
                         </tr>
                         <tr>
                             <td colSpan="6">
-                                <div className="btn-group btn-group-sm" role="group">
-                                      <button className="btn btn-unranked" type="button"  onClick={this.openModal.bind(this,"plugin_output", obj.id)} >Hosts: {obj.hosts.length}</button>
-                                      <button className="btn btn-unranked" type="button" disabled="disabled" >Ifaces: {obj.ifaces.length}</button>
-                                      <button className="btn btn-unranked" type="button" disabled="disabled" >Services: {obj.services.length}</button>
-                                      <button className="btn btn-unranked" type="button" disabled="disabled" >Creds: {obj.creds.length}</button>
-                                      <button className="btn btn-unranked" type="button" disabled="disabled" >Vulns: {obj.vulns.length}</button>
-                                      <button className="btn btn-unranked" type="button" disabled="disabled" >Notes: {'X'}</button>
-                                </div>
+                            {(() => {
+                                let doShow = false
+                                commands.map((cmd, i) => {
+                                    if (cmd.normalized === true) {
+                                        doShow = true;
+                                    }
+                                })
+                                if (doShow === true) {
+                                    return (
+                                        <div className="btn-group btn-group-sm" role="group">
+                                              <button className="btn btn-unranked" type="button"  onClick={this.openModal.bind(this,"plugin_output", obj.id)} >Hosts: {obj.hosts.length}</button>
+                                              <button className="btn btn-unranked" type="button" disabled="disabled" >Ifaces: {obj.ifaces.length}</button>
+                                              <button className="btn btn-unranked" type="button" disabled="disabled" >Services: {obj.services.length}</button>
+                                              <button className="btn btn-unranked" type="button" disabled="disabled" >Creds: {obj.creds.length}</button>
+                                              <button className="btn btn-unranked" type="button" disabled="disabled" >Vulns: {obj.vulns.length}</button>
+                                              <button className="btn btn-unranked" type="button" disabled="disabled" >Notes: {'X'}</button>
+                                        </div>
+                                    )
+                                }
+                            })()}
+                                
                             </td>
                         </tr>
                         <tr>
@@ -221,33 +234,22 @@ class Table extends React.PureComponent {
                                 <h4><a href="/output_files/{{ FilePath }}" target="_blank">{cmd.name}</a> Output (Execution Time: {cmd.start_time} - {cmd.end_time})</h4>
                                 <div className="col-md-12">
                                     <pre className="wrappedPre">{cmd.small_stdout}</pre>
+                                    {(() => {
+                                    if (cmd.normalized === true) {
+                                        return (
+                                            <div className="btn-group btn-group-xs" role="group">
+                                                <button className="btn btn-unranked" type="button" onClick={this.openModal.bind(this,"command", cmd.id)}>Hosts: {cmd.hosts.length}</button>
+                                                <button className="btn btn-unranked" type="button" disabled="disabled" >Ifaces: {cmd.ifaces.length}</button>
+                                                <button className="btn btn-unranked" type="button" disabled="disabled" >Services: {cmd.services.length}</button>
+                                                <button className="btn btn-unranked" type="button" disabled="disabled" >Creds: {cmd.creds.length}</button>
+                                                <button className="btn btn-unranked" type="button" disabled="disabled" >Vulns: {cmd.vulns.length}</button>
+                                                <button className="btn btn-unranked" type="button" disabled="disabled" >Notes: {cmd.notes.length}</button>
+                                            </div>
+                                        );
+                                    }
+                                    })()}
                                 </div>
                             </div>
-                            <div className="row-fluid">
-                                 {/*{% if longOutput %}
-
-                                 <div className='alert alert-warning'>
-                                        <strong>NOTE!</strong>
-                                        Output longer than {{ mNumLinesToShow }} lines,
-                                        <a href="/output_files/{{ FilePath }}" target="_blank"> Click here to see all output! </a>
-                                 </div>
-
-                                 {% end %}*/}
-                            </div>
-                            {(() => {
-                            if (cmd.normalized === true) {
-                                return (
-                                    <div className="btn-group btn-group-xs" role="group">
-                                        <button className="btn btn-unranked" type="button" onClick={this.openModal.bind(this,"command", cmd.id)}>Hosts: {cmd.hosts.length}</button>
-                                        <button className="btn btn-unranked" type="button" disabled="disabled" >Ifaces: {cmd.ifaces.length}</button>
-                                        <button className="btn btn-unranked" type="button" disabled="disabled" >Services: {cmd.services.length}</button>
-                                        <button className="btn btn-unranked" type="button" disabled="disabled" >Creds: {cmd.creds.length}</button>
-                                        <button className="btn btn-unranked" type="button" disabled="disabled" >Vulns: {cmd.vulns.length}</button>
-                                        <button className="btn btn-unranked" type="button" disabled="disabled" >Notes: {cmd.notes.length}</button>
-                                    </div>
-                                );
-                            }
-                            })()}
                         </td>
                         
                         </tr>
