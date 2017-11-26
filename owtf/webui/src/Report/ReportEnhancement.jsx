@@ -1,9 +1,36 @@
 import React from 'react';
 import {REPORT_API_URI} from '../constants.jsx';
-import {Pie} from 'react-chartjs';
+import {Doughnut} from 'react-chartjs';
 import ReactTable from 'react-table'
 import TreeView from 'react-treeview'
 import Modal from 'react-modal'
+
+
+function vulnsApiUrlForType(id, type, entity) {
+    
+    var apiUrl
+    if (type == "command") {
+        apiUrl = REPORT_API_URI + "commands/" + id + "/" + entity + "/"
+    } else if (type == "plugin_output") {
+        apiUrl = REPORT_API_URI + "plugin_outputs/" + id + "/" + entity + "/"
+    } else if (type == "target") {
+        apiUrl = REPORT_API_URI + "targets/" + id + "/" + entity + "/"
+    }
+    return apiUrl
+}
+
+function apiUrlForType(id, type, entity) {
+    
+    var apiUrl
+    if (type == "command") {
+        apiUrl = REPORT_API_URI + "commands/" + id + "/table/" + entity + ""
+    } else if (type == "plugin_output") {
+        apiUrl = REPORT_API_URI + "plugin_outputs/" + id + "/table/" + entity + ""
+    } else if (type == "target") {
+        apiUrl = REPORT_API_URI + "targets/" + id + "/table/" + entity + ""
+    }
+    return apiUrl
+}
 
 export class VulnerabilityCountPieChart extends React.PureComponent {
 
@@ -23,14 +50,7 @@ export class VulnerabilityCountPieChart extends React.PureComponent {
 
     componentDidMount() {
 
-        var apiUrl;
-        if (this.props.objType == "command") {
-            apiUrl = REPORT_API_URI + "commands/" + this.props.objId + "/hosts/"
-        } else if (this.props.objType == "plugin_output") {
-            apiUrl = REPORT_API_URI + "plugin_outputs/" + this.props.objId + "/hosts/"
-        } else if (this.props.objType == "target") {
-            apiUrl = REPORT_API_URI + "targets/" + this.props.objId + "/hosts/"
-        }
+        var apiUrl = vulnsApiUrlForType(this.props.objId, this.props.objType, "hosts")
 
         fetch(apiUrl)
           .then((response) => response.json())
@@ -103,7 +123,7 @@ export class VulnerabilityCountPieChart extends React.PureComponent {
     render() {
         return (
             <div>
-                <Pie data={this.state.pieData} width="175%" height="175%"/>
+                <Doughnut data={this.state.pieData} width="175%" height="175%"/>
             </div>
         );
     }
@@ -121,25 +141,18 @@ export class HostsEnhancementTable extends React.PureComponent {
         super(props);
 
         this.state = {
-          data: []
+          dataSource: []
         };
     }
 
     componentDidMount() {
         
-        var apiUrl;
-        if (this.props.objType == "command") {
-            apiUrl = REPORT_API_URI + "commands/" + this.props.objId + "/hosts/"
-        } else if (this.props.objType == "plugin_output") {
-            apiUrl = REPORT_API_URI + "plugin_outputs/" + this.props.objId + "/hosts/"
-        } else if (this.props.objType == "target") {
-            apiUrl = REPORT_API_URI + "targets/" + this.props.objId + "/hosts/"
-        }
+        var apiUrl = apiUrlForType(this.props.objId, this.props.objType, "hosts")
 
-        fetch('/api/report/commands/12/table/vulns')
+        fetch(apiUrl)
           .then((response) => response.json())
           .then((data) => {
-            this.setState({data: data.objs});
+            this.setState({dataSource: data.objs});
           })
 
     }
@@ -150,9 +163,8 @@ export class HostsEnhancementTable extends React.PureComponent {
         Header: 'Name',
         accessor: 'name' // String-based value accessors!
       }, {
-        Header: 'Severity',
-        accessor: 'severity',
-        Cell: props => <span className='number'>{props.value}</span> // Custom cell components!
+        Header: 'OS',
+        accessor: 'os'
       }, {
         Header: 'Count', // Custom header components!
         accessor: 'count'
@@ -160,7 +172,7 @@ export class HostsEnhancementTable extends React.PureComponent {
 
       return (
             <ReactTable
-                data={this.state.data}
+                data={this.state.dataSource}
                 columns={columns}
                 defaultPageSize={5}
                 showPageSizeOptions={false}
@@ -182,25 +194,18 @@ export class ServicesEnhancementTable extends React.PureComponent {
         super(props);
 
         this.state = {
-          data: []
+          dataSource: []
         };
     }
 
     componentDidMount() {
         
-        var apiUrl;
-        if (this.props.objType == "command") {
-            apiUrl = REPORT_API_URI + "commands/" + this.props.objId + "/hosts/"
-        } else if (this.props.objType == "plugin_output") {
-            apiUrl = REPORT_API_URI + "plugin_outputs/" + this.props.objId + "/hosts/"
-        } else if (this.props.objType == "target") {
-            apiUrl = REPORT_API_URI + "targets/" + this.props.objId + "/hosts/"
-        }
+        var apiUrl = apiUrlForType(this.props.objId, this.props.objType, "services")
 
-        fetch('/api/report/commands/12/table/vulns')
+        fetch(apiUrl)
           .then((response) => response.json())
           .then((data) => {
-            this.setState({data: data.objs});
+            this.setState({dataSource: data.objs});
           })
 
     }
@@ -211,8 +216,8 @@ export class ServicesEnhancementTable extends React.PureComponent {
         Header: 'Name',
         accessor: 'name' // String-based value accessors!
       }, {
-        Header: 'Severity',
-        accessor: 'severity',
+        Header: 'Ports',
+        accessor: 'ports',
         Cell: props => <span className='number'>{props.value}</span> // Custom cell components!
       }, {
         Header: 'Count', // Custom header components!
@@ -221,7 +226,7 @@ export class ServicesEnhancementTable extends React.PureComponent {
 
       return (
             <ReactTable
-                data={this.state.data}
+                data={this.state.dataSource}
                 columns={columns}
                 defaultPageSize={5}
                 showPageSizeOptions={false}
@@ -243,25 +248,18 @@ export class VulnsEnhancementTable extends React.PureComponent {
         super(props);
 
         this.state = {
-          data: []
+          dataSource: []
         };
     }
 
     componentDidMount() {
         
-        var apiUrl;
-        if (this.props.objType == "command") {
-            apiUrl = REPORT_API_URI + "commands/" + this.props.objId + "/hosts/"
-        } else if (this.props.objType == "plugin_output") {
-            apiUrl = REPORT_API_URI + "plugin_outputs/" + this.props.objId + "/hosts/"
-        } else if (this.props.objType == "target") {
-            apiUrl = REPORT_API_URI + "targets/" + this.props.objId + "/hosts/"
-        }
+        var apiUrl = apiUrlForType(this.props.objId, this.props.objType, "vulns")
 
-        fetch('/api/report/commands/12/table/vulns')
+        fetch(apiUrl)
           .then((response) => response.json())
           .then((data) => {
-            this.setState({data: data.objs});
+            this.setState({dataSource: data.objs});
           })
 
     }
@@ -282,7 +280,7 @@ export class VulnsEnhancementTable extends React.PureComponent {
 
       return (
             <ReactTable
-                data={this.state.data}
+                data={this.state.dataSource}
                 columns={columns}
                 defaultPageSize={5}
                 showPageSizeOptions={false}
@@ -304,25 +302,18 @@ export class CredsEnhancementTable extends React.PureComponent {
         super(props);
 
         this.state = {
-          data: []
+          dataSource: []
         };
     }
 
     componentDidMount() {
         
-        var apiUrl;
-        if (this.props.objType == "command") {
-            apiUrl = REPORT_API_URI + "commands/" + this.props.objId + "/hosts/"
-        } else if (this.props.objType == "plugin_output") {
-            apiUrl = REPORT_API_URI + "plugin_outputs/" + this.props.objId + "/hosts/"
-        } else if (this.props.objType == "target") {
-            apiUrl = REPORT_API_URI + "targets/" + this.props.objId + "/hosts/"
-        }
+        var apiUrl = apiUrlForType(this.props.objId, this.props.objType, "creds")
 
-        fetch('/api/report/commands/12/table/vulns')
+        fetch(apiUrl)
           .then((response) => response.json())
           .then((data) => {
-            this.setState({data: data.objs});
+            this.setState({dataSource: data.objs});
           })
 
     }
@@ -330,20 +321,17 @@ export class CredsEnhancementTable extends React.PureComponent {
     render() {
 
       const columns = [{
-        Header: 'Name',
-        accessor: 'name' // String-based value accessors!
+        Header: 'Username',
+        accessor: 'username' // String-based value accessors!
       }, {
-        Header: 'Severity',
-        accessor: 'severity',
+        Header: 'Password',
+        accessor: 'password',
         Cell: props => <span className='number'>{props.value}</span> // Custom cell components!
-      }, {
-        Header: 'Count', // Custom header components!
-        accessor: 'count'
       }]
 
       return (
             <ReactTable
-                data={this.state.data}
+                data={this.state.dataSource}
                 columns={columns}
                 defaultPageSize={5}
                 showPageSizeOptions={false}
@@ -365,31 +353,22 @@ export class NotesEnhancementTable extends React.PureComponent {
         super(props);
 
         this.state = {
-          data: []
+          dataSource: []
         };
     }
 
     componentDidMount() {
         
-        var apiUrl;
-        if (this.props.objType == "command") {
-            apiUrl = REPORT_API_URI + "commands/" + this.props.objId + "/hosts/"
-        } else if (this.props.objType == "plugin_output") {
-            apiUrl = REPORT_API_URI + "plugin_outputs/" + this.props.objId + "/hosts/"
-        } else if (this.props.objType == "target") {
-            apiUrl = REPORT_API_URI + "targets/" + this.props.objId + "/hosts/"
-        }
+        // var apiUrl = apiUrlForType(this.props.objId, this.props.objType, "notes")
 
-        fetch('/api/report/commands/12/table/vulns')
-          .then((response) => response.json())
-          .then((data) => {
-            this.setState({data: data.objs});
-          })
-
+        // fetch('/api/report/commands/12/table/vulns')
+        //   .then((response) => response.json())
+        //   .then((data) => {
+        //     this.setState({dataSource: data.objs});
+        //   })
     }
 
     render() {
-
       const columns = [{
         Header: 'Name',
         accessor: 'name' // String-based value accessors!
@@ -404,7 +383,54 @@ export class NotesEnhancementTable extends React.PureComponent {
 
       return (
             <ReactTable
-                data={this.state.data}
+                data={this.state.dataSource}
+                columns={columns}
+                defaultPageSize={5}
+                showPageSizeOptions={false}
+                />
+        )
+    }
+}
+
+export class CommandsEnhancementTable extends React.PureComponent {
+
+  /**
+    * Function responsible for handling editing of notes.
+    * Uses REST API - /api/targets/<target_id>/poutput/<group>/<type>/<code>/
+    * @param {group, type, code, user_rank} values group:group of plugin clicked, type: type of plugin clicked, code: code of plugin clicked, user_rank: rank changed to.
+    */
+
+    constructor(props) {
+        super(props);
+
+        this.state = {
+          dataSource: []
+        };
+    }
+
+    componentDidMount() {
+        
+        var apiUrl = apiUrlForType(this.props.objId, this.props.objType, "commands")
+
+        fetch(apiUrl)
+          .then((response) => response.json())
+          .then((data) => {
+            this.setState({dataSource: data.objs});
+          })
+    }
+
+    render() {
+      const columns = [{
+        Header: 'Name',
+        accessor: 'name' // String-based value accessors!
+      }, {
+        Header: 'Command',
+        accessor: 'original_command',
+      }]
+
+      return (
+            <ReactTable
+                data={this.state.dataSource}
                 columns={columns}
                 defaultPageSize={5}
                 showPageSizeOptions={false}
@@ -474,8 +500,27 @@ export class ReportEnhancementModal extends React.PureComponent {
                   style={customStyles}
                   contentLabel="Example Modal"
                 >
-                  <h2 ref={subtitle => this.subtitle = subtitle}>Findings Report OWTF</h2>
-                  <button onClick={this.closeModal}>close</button>
+                  <div className="text-center">
+                    <h2 ref={subtitle => this.subtitle = subtitle}>Findings Report OWTF<button onClick={this.closeModal}>close</button></h2>
+                    {/*    <div className="btn-group btn-group-sm" role="group">
+                              <button className="btn btn-unranked" type="button" disabled="disabled" >Hosts: {'0'}</button>
+                              <button className="btn btn-unranked" type="button" disabled="disabled" >Ifaces: {'0'}</button>
+                              <button className="btn btn-unranked" type="button" disabled="disabled" >Services: {'0'}</button>
+                              <button className="btn btn-unranked" type="button" disabled="disabled" >Creds: {'0'}</button>
+                              <button className="btn btn-unranked" type="button" disabled="disabled" >Vulns: {'0'}</button>
+                              <button className="btn btn-unranked" type="button" disabled="disabled" >Notes: {'0'}</button>
+                        </div>*/}
+                  </div>
+                    <div className="row-fluid">
+                        <div className="col-md-2 col-md-offset-2">
+                            <h5>Vulnerabilities by severity</h5>
+                            <VulnerabilityCountPieChart objId={this.props.objId} objType={this.props.objType} />
+                        </div>
+                        <div className="col-md-offset-2 col-md-6">
+                            <h5>Commands</h5>
+                            <CommandsEnhancementTable objId={this.props.objId} objType={this.props.objType} />
+                        </div>
+                    </div>                                    
                     <div className="row-fluid">
                         <div className="col-md-6">
                             <h5>Hosts</h5>
@@ -487,24 +532,21 @@ export class ReportEnhancementModal extends React.PureComponent {
                         </div>
                     </div>                                      
                     <div className="row-fluid">
-                        <h4>Vulnerabilities</h4>
-                        <div className="col-md-6">
-                            <h5>Vulnerabilities by severity</h5>
-                            <VulnerabilityCountPieChart objId={this.props.objId} objType={this.props.objType} />
-                        </div>
                         <div className="col-md-6">
                             <h5>Vulnerabilities</h5>
                             <VulnsEnhancementTable objId={this.props.objId} objType={this.props.objType} />
                         </div>
-                    </div>                    
+                        <div className="col-md-6">
+                            <h5>Credentials</h5>
+                            <CredsEnhancementTable objId={this.props.objId} objType={this.props.objType} />
+                        </div>
+                    </div>
                     <div className="row-fluid">
                         <div className="col-md-6">
                             <h5>Notes</h5>
                             <NotesEnhancementTable objId={this.props.objId} objType={this.props.objType} />
                         </div>
-                        <div className="col-md-6">
-                        </div>
-                    </div>                    
+                    </div>
                 </Modal>
         )
     }

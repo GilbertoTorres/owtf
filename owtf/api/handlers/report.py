@@ -17,7 +17,7 @@ from owtf.lib import exceptions
 from owtf.constants import RANKS
 from owtf.lib.general import cprint
 from owtf.api.base import APIRequestHandler
-from owtf.db.models import Vuln, Command
+from owtf.db.models import Vuln, Command, Service, Cred, Host
 from sqlalchemy import and_
 
 from random import randint
@@ -109,7 +109,6 @@ class ReportCommandsHostsHandler(APIRequestHandler):
         
         result = self.get_component("db_report").get_hosts_for_command(command_id, full=True)
         db = self.get_component("db")
-        # self..session.query(PluginOutput).filter_by(target_id=target_id, plugin_key=plugin_key).count()
         
         severity_passing = db.session.query(Vuln) \
                         .join(Command, Vuln.commands) \
@@ -202,7 +201,7 @@ class ReportPluginOutputsHostsHandler(APIRequestHandler):
             raise tornado.web.HTTPError(400)
 
 
-class ReportStatsTableVulnsHandler(APIRequestHandler):
+class ReportStatsTableHandler(APIRequestHandler):
     """
     Class handling API methods related to export report funtionality.
     This API returns all information about a target scan present in OWTF.
@@ -213,26 +212,55 @@ class ReportStatsTableVulnsHandler(APIRequestHandler):
 
     SUPPORTED_METHODS = ['GET']
 
-    def get(self, entity, id):
+    def get(self, type, id, entity):
         """
         REST API - /api/targets/<target_id>/export/ returns JSON(data) for template.
         """
-        if not entity or not id:
+        if not type or not type in ("plugin_outputs", "commands"):
+            raise tornado.web.HTTPError(400)
+        if not entity or not entity in ("hosts","services","vulns","creds", "commands"):
             raise tornado.web.HTTPError(400)
         
         db = self.get_component("db")
-        # self..session.query(PluginOutput).filter_by(target_id=target_id, plugin_key=plugin_key).count()
-        
-        query = db.session.query(Vuln) \
-                        .join(Command, Vuln.commands)
 
-        if entity == "plugin_outputs":
-            query = query.filter(and_(Command.plugin_output_id == id))
+        if entity == "hosts":
+            query = db.session.query(Host)
+            if type == "plugin_outputs":
+                query = query.join(Command, Host.commands)
+                query = query.filter(and_(Command.plugin_output_id == id))
+            elif type == "commands":
+                query = query.join(Command, Host.commands)
+                query = query.filter(and_(Command.id == id))
+        elif entity == "services":
+            query = db.session.query(Service)
+            if type == "plugin_outputs":
+                query = query.join(Command, Service.commands)
+                query = query.filter(and_(Command.plugin_output_id == id))
+            elif type == "commands":
+                query = query.join(Command, Service.commands)
+                query = query.filter(and_(Command.id == id))
+        elif entity == "vulns":
+            query = db.session.query(Vuln)
+            if type == "plugin_outputs":
+                query = query.join(Command, Vuln.commands)
+                query = query.filter(and_(Command.plugin_output_id == id))
+            elif type == "commands":
+                query = query.join(Command, Vuln.commands)
+                query = query.filter(and_(Command.id == id))
+        elif entity == "creds":
+            query = db.session.query(Cred)
+            if type == "plugin_outputs":
+                query = query.join(Command, Cred.commands)
+                query = query.filter(and_(Command.plugin_output_id == id))
+            elif type == "commands":
+                query = query.join(Command, Cred.commands)
+                query = query.filter(and_(Command.id == id))
         elif entity == "commands":
-            query = query.filter(and_(Command.id == id))
-        else:
-            raise Error("Invalid entity for api!")
-
+            query = db.session.query(Command)
+            if type == "plugin_outputs":
+                query = query.filter(and_(Command.plugin_output_id == id, Command.normalized == True))
+            elif type == "commands":
+                query = query.filter(and_(Command.id == id, Command.normalized == True))
 
         objs = query.all()
         objs_dict = [obj.to_dict() for obj in objs]
