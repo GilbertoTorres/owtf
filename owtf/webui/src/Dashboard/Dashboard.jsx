@@ -5,6 +5,7 @@ import VulnerabilityPanel from './Panel.jsx';
 import GitHubReport from './GitHubReport.jsx';
 import {SEVERITY_CHART_URL, SEVERITY_PANEL_URL, WORKER_PANEL_URL, ERROR_URL, POLLINTERVAL} from './constants.jsx';
 import {FILE_SERVER_PORT} from '../constants.jsx';
+import {ReportEnhancementBadge,ReportEnhancementModal} from '../Report/ReportEnhancement.jsx';
 
 /**
  * React Component for Dashboard.
@@ -18,6 +19,20 @@ import {FILE_SERVER_PORT} from '../constants.jsx';
  */
 
 class Dashboard extends React.Component {
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            modalIsOpen: false
+        };
+
+        this.openModal = this.openModal.bind(this);
+    };
+
+    openModal() {
+        this.setState({modalIsOpen: true});
+    }
+
     render() {
         const HOST = location.protocol.concat("//").concat(window.location.hostname).concat(":");
         return (
@@ -39,6 +54,20 @@ class Dashboard extends React.Component {
                         <GitHubReport source={ERROR_URL}/>
                     </div>
                 </div>
+
+                <div>
+                    <div className="row">
+                        <div className="col-xs-12 col-md-6">
+                            <h3 className="dashboard-subheading">Current Findings</h3>
+                            <hr></hr>
+                        </div>
+                    </div>
+                    <div className="row">
+                        <ReportEnhancementBadge openModalHandler={this.openModal} groupClass={'btn-group-xl'} objType={'session'} />
+                        <ReportEnhancementModal modalIsOpen={this.state.modalIsOpen} objType={'session'} />
+                    </div>
+                </div>
+
                 <VulnerabilityPanel source={SEVERITY_PANEL_URL}/>
                 <div className="row">
                     <div className="col-xs-12 col-sm-12 com-md-6 col-lg-6">

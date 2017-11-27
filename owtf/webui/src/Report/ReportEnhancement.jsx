@@ -6,20 +6,22 @@ import TreeView from 'react-treeview'
 import Modal from 'react-modal'
 
 
-function vulnsApiUrlForType(id, type, entity) {
+function vulnSeveritiesApiUrlFor(id, type, entity) {
     
     var apiUrl
     if (type == "command") {
-        apiUrl = REPORT_API_URI + "commands/" + id + "/" + entity + "/"
+        apiUrl = REPORT_API_URI + "commands/" + id + "/vulns/severity"
     } else if (type == "plugin_output") {
-        apiUrl = REPORT_API_URI + "plugin_outputs/" + id + "/" + entity + "/"
+        apiUrl = REPORT_API_URI + "plugin_outputs/" + id + "/vulns/severity"
     } else if (type == "target") {
-        apiUrl = REPORT_API_URI + "targets/" + id + "/" + entity + "/"
+        apiUrl = REPORT_API_URI + "targets/" + id + "/vulns/severity"
+    } else if (type == "session") {
+        apiUrl = REPORT_API_URI + "current_session/vulns/severity"
     }
     return apiUrl
 }
 
-function apiUrlForType(id, type, entity) {
+function tableApiUrlFor(id, type, entity) {
     
     var apiUrl
     if (type == "command") {
@@ -28,6 +30,23 @@ function apiUrlForType(id, type, entity) {
         apiUrl = REPORT_API_URI + "plugin_outputs/" + id + "/table/" + entity + ""
     } else if (type == "target") {
         apiUrl = REPORT_API_URI + "targets/" + id + "/table/" + entity + ""
+    } else if (type == "session") {
+        apiUrl = REPORT_API_URI + "current_session/table/" + entity + ""
+    }
+    return apiUrl
+}
+
+function badgeApiUrlFor(id, type) {
+    
+    var apiUrl
+    if (type == "command") {
+        apiUrl = REPORT_API_URI + "commands/" + id + "/badge"
+    } else if (type == "plugin_output") {
+        apiUrl = REPORT_API_URI + "plugin_outputs/" + id + "/badge"
+    } else if (type == "target") {
+        apiUrl = REPORT_API_URI + "targets/" + id + "/badge"
+    } else if (type == "session") {
+        apiUrl = REPORT_API_URI + "current_session/badge"
     }
     return apiUrl
 }
@@ -50,21 +69,19 @@ export class VulnerabilityCountPieChart extends React.PureComponent {
 
     componentDidMount() {
 
-        var apiUrl = vulnsApiUrlForType(this.props.objId, this.props.objType, "hosts")
+        var apiUrl = vulnSeveritiesApiUrlFor(this.props.objId, this.props.objType, "hosts")
 
         fetch(apiUrl)
           .then((response) => response.json())
           .then((data) => {
-            console.log("data is:", data);
-
-            var severity = data.stats.vulnerabilities.severity;
+            var severities = data.severities;
             var pieData;
-            if ((severity.passing + 
-                    severity.info + 
-                        severity.low + 
-                        severity.medium + 
-                        severity.high + 
-                        severity.critical) == 0) {
+            if ((severities.passing + 
+                    severities.info + 
+                        severities.low + 
+                        severities.medium + 
+                        severities.high + 
+                        severities.critical) == 0) {
                 
                 pieData = [
                   {
@@ -79,37 +96,37 @@ export class VulnerabilityCountPieChart extends React.PureComponent {
                   {
                     color: "#32CD32",
                     id: 0,
-                    value: severity.passing,
+                    value: severities.passing,
                     label: "Passing"
                   },
                   {
                     color: "#b1d9f4",
                     id: 1,
-                    value: severity.info,
+                    value: severities.info,
                     label: "Info"
                   },
                   {
                     color: "#337ab7",
                     id: 2,
-                    value: severity.low,
+                    value: severities.low,
                     label: "Low"
                   },
                   {
                     color: "#ffcc00",
                     id: 3,
-                    value: severity.medium,
+                    value: severities.medium,
                     label: "Medium"
                   },
                   {
                     color: "#c12e2a",
                     id: 4,
-                    value: severity.high,
+                    value: severities.high,
                     label: "High"
                   },
                   {
                     color: "#800080",
                     id: 5,
-                    value: severity.critical,
+                    value: severities.critical,
                     label: "Critical"
                   }
                 ];
@@ -147,7 +164,7 @@ export class HostsEnhancementTable extends React.PureComponent {
 
     componentDidMount() {
         
-        var apiUrl = apiUrlForType(this.props.objId, this.props.objType, "hosts")
+        var apiUrl = tableApiUrlFor(this.props.objId, this.props.objType, "hosts")
 
         fetch(apiUrl)
           .then((response) => response.json())
@@ -176,6 +193,7 @@ export class HostsEnhancementTable extends React.PureComponent {
                 columns={columns}
                 defaultPageSize={5}
                 showPageSizeOptions={false}
+                className="-striped -highlight"
                 />
         )
     }
@@ -200,7 +218,7 @@ export class ServicesEnhancementTable extends React.PureComponent {
 
     componentDidMount() {
         
-        var apiUrl = apiUrlForType(this.props.objId, this.props.objType, "services")
+        var apiUrl = tableApiUrlFor(this.props.objId, this.props.objType, "services")
 
         fetch(apiUrl)
           .then((response) => response.json())
@@ -220,8 +238,14 @@ export class ServicesEnhancementTable extends React.PureComponent {
         accessor: 'ports',
         Cell: props => <span className='number'>{props.value}</span> // Custom cell components!
       }, {
-        Header: 'Count', // Custom header components!
-        accessor: 'count'
+        Header: 'Protocol', // Custom header components!
+        accessor: 'protocol'
+      }, {
+        Header: 'Version', // Custom header components!
+        accessor: 'version'
+      }, {
+        Header: 'Host', // Custom header components!
+        accessor: 'host'
       }]
 
       return (
@@ -230,6 +254,7 @@ export class ServicesEnhancementTable extends React.PureComponent {
                 columns={columns}
                 defaultPageSize={5}
                 showPageSizeOptions={false}
+                className="-striped -highlight"
                 />
         )
     }
@@ -254,7 +279,7 @@ export class VulnsEnhancementTable extends React.PureComponent {
 
     componentDidMount() {
         
-        var apiUrl = apiUrlForType(this.props.objId, this.props.objType, "vulns")
+        var apiUrl = tableApiUrlFor(this.props.objId, this.props.objType, "vulns")
 
         fetch(apiUrl)
           .then((response) => response.json())
@@ -284,6 +309,7 @@ export class VulnsEnhancementTable extends React.PureComponent {
                 columns={columns}
                 defaultPageSize={5}
                 showPageSizeOptions={false}
+                className="-striped -highlight"
                 />
         )
     }
@@ -308,7 +334,7 @@ export class CredsEnhancementTable extends React.PureComponent {
 
     componentDidMount() {
         
-        var apiUrl = apiUrlForType(this.props.objId, this.props.objType, "creds")
+        var apiUrl = tableApiUrlFor(this.props.objId, this.props.objType, "creds")
 
         fetch(apiUrl)
           .then((response) => response.json())
@@ -335,6 +361,7 @@ export class CredsEnhancementTable extends React.PureComponent {
                 columns={columns}
                 defaultPageSize={5}
                 showPageSizeOptions={false}
+                className="-striped -highlight"
                 />
         )
     }
@@ -359,7 +386,7 @@ export class NotesEnhancementTable extends React.PureComponent {
 
     componentDidMount() {
         
-        // var apiUrl = apiUrlForType(this.props.objId, this.props.objType, "notes")
+        // var apiUrl = tableApiUrlFor(this.props.objId, this.props.objType, "notes")
 
         // fetch('/api/report/commands/12/table/vulns')
         //   .then((response) => response.json())
@@ -387,9 +414,56 @@ export class NotesEnhancementTable extends React.PureComponent {
                 columns={columns}
                 defaultPageSize={5}
                 showPageSizeOptions={false}
+                className="-striped -highlight"
                 />
         )
     }
+}
+
+export class ReportEnhancementBadge extends React.PureComponent {
+
+  /**
+    * Function responsible for handling editing of notes.
+    * Uses REST API - /api/targets/<target_id>/poutput/<group>/<type>/<code>/
+    * @param {group, type, code, user_rank} values group:group of plugin clicked, type: type of plugin clicked, code: code of plugin clicked, user_rank: rank changed to.
+    */
+
+    constructor(props) {
+        super(props);
+
+        this.state = {
+          badgeCount: []
+        };
+    }
+
+    componentDidMount() {
+        
+        var apiUrl = badgeApiUrlFor(this.props.objId, this.props.objType)
+
+        fetch(apiUrl)
+          .then((response) => response.json())
+          .then((data) => {
+            this.setState({badgeCount: data.badge});
+          })
+    }
+
+    render() {
+      return (
+          <div className={"btn-group " + this.props.groupClass} role="group">
+              <button className="btn btn-unranked" type="button" onClick={this.props.openModalHandler}>Hosts: {this.state.badgeCount.host_count}</button>
+              <button className="btn btn-unranked" type="button" disabled="disabled" >Ifaces: {this.state.badgeCount.iface_count}</button>
+              <button className="btn btn-unranked" type="button" disabled="disabled" >Services: {this.state.badgeCount.service_count}</button>
+              <button className="btn btn-unranked" type="button" disabled="disabled" >Creds: {this.state.badgeCount.cred_count}</button>
+              <button className="btn btn-unranked" type="button" disabled="disabled" >Vulns: {this.state.badgeCount.vuln_count}</button>
+              <button className="btn btn-unranked" type="button" disabled="disabled" >Notes: {this.state.badgeCount.note_count}</button>
+          </div>
+        )
+    }
+}
+
+ReportEnhancementBadge.defaultProps = {
+  groupClass: "btn-group-xl",
+  objId: -1 // session does not reseive an id, it's handled server-side
 }
 
 export class CommandsEnhancementTable extends React.PureComponent {
@@ -410,7 +484,7 @@ export class CommandsEnhancementTable extends React.PureComponent {
 
     componentDidMount() {
         
-        var apiUrl = apiUrlForType(this.props.objId, this.props.objType, "commands")
+        var apiUrl = tableApiUrlFor(this.props.objId, this.props.objType, "commands")
 
         fetch(apiUrl)
           .then((response) => response.json())
@@ -428,12 +502,14 @@ export class CommandsEnhancementTable extends React.PureComponent {
         accessor: 'original_command',
       }]
 
+
       return (
             <ReactTable
                 data={this.state.dataSource}
                 columns={columns}
                 defaultPageSize={5}
                 showPageSizeOptions={false}
+                className="-striped -highlight"
                 />
         )
     }

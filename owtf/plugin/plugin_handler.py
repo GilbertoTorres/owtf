@@ -56,7 +56,6 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         self.target = self.get_component("target")
         self.transaction = self.get_component("transaction")
         self.error_handler = self.get_component("error_handler")
-        self.reporter = None
         self.timer = self.get_component("timer")
         self.init_options(options)
 
@@ -78,7 +77,6 @@ class PluginHandler(BaseComponent, PluginHandlerInterface):
         self.init_options(options)
         self.core = self.get_component("core")
         self.plugin_output = self.get_component("plugin_output")
-        self.reporter = self.get_component("reporter")
         self.scanner = Scanner()
 
     def plugin_already_run(self, plugin_info):

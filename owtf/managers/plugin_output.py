@@ -71,6 +71,8 @@ class POutputDB(BaseComponent, PluginOutputInterface):
         """
         content = ''
         for item in plugin_output:
+            if item["type"] == "CommandDump":
+                continue
             content += getattr(self.reporter, item["type"])(**item["output"])
         return content
 

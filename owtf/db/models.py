@@ -564,6 +564,11 @@ class Service(Base):
         return dict(
             name=self.name,
             ports=self.parsed_ports(),
+            version=self.version,
+            protocol=self.protocol,
+            status=self.status,
+            description=self.description,
+            host=self.iface.host.name
             )
 
     def to_dict_full(self):

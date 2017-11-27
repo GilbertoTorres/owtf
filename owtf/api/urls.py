@@ -9,7 +9,10 @@ import tornado.web
 from owtf.api.handlers.config import ConfigurationHandler
 from owtf.api.handlers.misc import ErrorDataHandler, DashboardPanelHandler, ProgressBarHandler
 from owtf.api.handlers.plugin import PluginDataHandler, PluginNameOutput, PluginOutputHandler
-from owtf.api.handlers.report import ReportExportHandler, ReportCommandsHostsHandler, ReportPluginOutputsHostsHandler,ReportStatsTableHandler
+from owtf.api.handlers.report import ReportExportHandler, \
+                                        ReportStatsTableHandler, \
+                                        ReportBadgeHandler, \
+                                        ReportVulnsSeverityHandler
 from owtf.api.handlers.session import OWTFSessionHandler
 from owtf.api.handlers.targets import TargetSeverityChartHandler, TargetConfigSearchHandler, TargetConfigHandler
 from owtf.api.handlers.transactions import URLDataHandler, URLSearchHandler, TransactionDataHandler, \
@@ -47,11 +50,14 @@ def get_handlers():
         tornado.web.url(r'/api/targets/([0-9]+)/export/?$', ReportExportHandler, name='report_export_api_url'),
         
         # The report data api
-        tornado.web.url(r'/api/report/commands/([0-9]+)/hosts/?$', ReportCommandsHostsHandler, name='report_commands_hosts_api_url'),
-        tornado.web.url(r'/api/report/plugin_outputs/([0-9]+)/hosts/?$', ReportPluginOutputsHostsHandler, name='report_plugin_outputs_hosts_api_url'),
-
-
-        tornado.web.url(r'/api/report/(\w+)/([0-9]+)/table/(\w+)?$', ReportStatsTableHandler, name='report_table_vulns'),
+        tornado.web.url(r'/api/report/(current_session)(.?)/vulns/severity?$', ReportVulnsSeverityHandler, name='report_current_session_vulns_severity'),
+        tornado.web.url(r'/api/report/(\w+)/([0-9]+)/vulns/severity?$', ReportVulnsSeverityHandler, name='report_vulns_severity'),
+        
+        tornado.web.url(r'/api/report/(current_session)(.?)/table/(\w+)?$', ReportStatsTableHandler, name='report_current_session_table_rows'),
+        tornado.web.url(r'/api/report/(\w+)/([0-9]+)/table/(\w+)?$', ReportStatsTableHandler, name='report_table_rows'),
+        
+        tornado.web.url(r'/api/report/(current_session)(.?)/badge?$', ReportBadgeHandler, name='report_current_session_badge_count'),
+        tornado.web.url(r'/api/report/(\w+)/([0-9]+)/badge?$', ReportBadgeHandler, name='report_badge_count'),
 
         # The following one url is dummy and actually processed in file server
         tornado.web.url(r'/api/workers/?([0-9]+)?/?(abort|pause|resume)?/?$', WorkerHandler, name='workers_api_url'),

@@ -6,6 +6,8 @@ import Toolbar from './Toolbar.jsx';
 import {Notification} from 'react-notification';
 import update from 'immutability-helper';
 
+import {ReportEnhancementModal, ReportEnhancementBadge} from './ReportEnhancement.jsx';
+
 /**
  * React Component for Report.
  * This is main component which renders the Dashboard page.
@@ -43,6 +45,8 @@ class Report extends React.Component {
         this.updateFilter = this.updateFilter.bind(this);
         this.clearFilters = this.clearFilters.bind(this);
         this.updateReport = this.updateReport.bind(this);
+
+        this.openModal = this.openModal.bind(this);
     };
 
     getChildContext() {
@@ -125,8 +129,14 @@ class Report extends React.Component {
         });
     };
 
+    openModal() {
+        this.setState({modalIsOpen: true});
+    }
+
     render() {
         this.replaceContainer();
+        const target_id = document.getElementById("report").getAttribute("data-code");
+
         return (
             <div>
                 <Header/>
@@ -137,6 +147,10 @@ class Report extends React.Component {
                     <div className="col-sm-10 col-md-10 col-lg-10">
                         <Toolbar selectedRank={this.state.selectedRank}/>
                         <br/>
+                            <ReportEnhancementBadge openModalHandler={this.openModal} groupClass={'btn-group-sm'} objId={target_id} objType={'target'} />
+                        <br/>
+                        <br/>
+                        <ReportEnhancementModal modalIsOpen={this.state.modalIsOpen} objType={'target'} objId={target_id}  />
                         <Accordians/>
                     </div>
                 </div>

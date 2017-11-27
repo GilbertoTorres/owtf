@@ -7,7 +7,9 @@ import {ReportEnhancementModal,
         ServicesEnhancementTable,
         VulnsEnhancementTable,
         CredsEnhancementTable,
-        NotesEnhancementTable} from './ReportEnhancement.jsx';
+        NotesEnhancementTable,
+        ReportEnhancementBadge
+    } from './ReportEnhancement.jsx';
 
 /**
   * React Component for Table in collapse. It is child component used by Collapse Component.
@@ -200,25 +202,25 @@ class Table extends React.PureComponent {
                                 })
                                 if (doShow === true) {
                                     return (
-                                        <div className="btn-group btn-group-sm" role="group">
-                                              <button className="btn btn-unranked" type="button"  onClick={this.openModal.bind(this,"plugin_output", obj.id)} >Hosts: {obj.hosts.length}</button>
-                                              <button className="btn btn-unranked" type="button" disabled="disabled" >Ifaces: {obj.ifaces.length}</button>
-                                              <button className="btn btn-unranked" type="button" disabled="disabled" >Services: {obj.services.length}</button>
-                                              <button className="btn btn-unranked" type="button" disabled="disabled" >Creds: {obj.creds.length}</button>
-                                              <button className="btn btn-unranked" type="button" disabled="disabled" >Vulns: {obj.vulns.length}</button>
-                                              <button className="btn btn-unranked" type="button" disabled="disabled" >Notes: {'X'}</button>
-                                        </div>
+                                    <ReportEnhancementBadge openModalHandler={this.openModal.bind(this,"plugin_output", obj.id)} groupClass={'btn-group-sm'} objId={obj.id} objType={'plugin_output'} />
                                     )
                                 }
                             })()}
                                 
                             </td>
                         </tr>
-                        <tr>
-                            <th colSpan="6">
-                                COMMANDS
-                            </th>
-                        </tr>
+                        {(() => {
+                            if (commands.length > 0) {
+                                return (
+                                    <tr>
+                                        <th colSpan="6">
+                                            COMMANDS
+                                        </th>
+                                    </tr>
+                                )
+                                
+                            }
+                        })()}
                         {commands.map((cmd, i) => {
                                 return (
 
@@ -237,14 +239,7 @@ class Table extends React.PureComponent {
                                     {(() => {
                                     if (cmd.normalized === true) {
                                         return (
-                                            <div className="btn-group btn-group-xs" role="group">
-                                                <button className="btn btn-unranked" type="button" onClick={this.openModal.bind(this,"command", cmd.id)}>Hosts: {cmd.hosts.length}</button>
-                                                <button className="btn btn-unranked" type="button" disabled="disabled" >Ifaces: {cmd.ifaces.length}</button>
-                                                <button className="btn btn-unranked" type="button" disabled="disabled" >Services: {cmd.services.length}</button>
-                                                <button className="btn btn-unranked" type="button" disabled="disabled" >Creds: {cmd.creds.length}</button>
-                                                <button className="btn btn-unranked" type="button" disabled="disabled" >Vulns: {cmd.vulns.length}</button>
-                                                <button className="btn btn-unranked" type="button" disabled="disabled" >Notes: {cmd.notes.length}</button>
-                                            </div>
+                                            <ReportEnhancementBadge openModalHandler={this.openModal.bind(this,"command", cmd.id)} groupClass={'btn-group-xs'} objId={cmd.id} objType={'command'} />
                                         );
                                     }
                                     })()}
