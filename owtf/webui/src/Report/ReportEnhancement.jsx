@@ -450,7 +450,8 @@ export class ReportEnhancementBadge extends React.PureComponent {
     render() {
       return (
           <div className={"btn-group " + this.props.groupClass} role="group">
-              <button className="btn btn-unranked" type="button" onClick={this.props.openModalHandler}>Hosts: {this.state.badgeCount.host_count}</button>
+              <button className="btn btn-unranked" type="button" onClick={this.props.openModalHandler}><i className="fa fa-bar-chart"></i>Report</button>
+              <button className="btn btn-unranked" type="button" disabled="disabled" >Hosts: {this.state.badgeCount.host_count}</button>
               <button className="btn btn-unranked" type="button" disabled="disabled" >Ifaces: {this.state.badgeCount.iface_count}</button>
               <button className="btn btn-unranked" type="button" disabled="disabled" >Services: {this.state.badgeCount.service_count}</button>
               <button className="btn btn-unranked" type="button" disabled="disabled" >Creds: {this.state.badgeCount.cred_count}</button>
@@ -579,14 +580,6 @@ export class ReportEnhancementModal extends React.PureComponent {
                   <div className="text-center">
                     <h2 ref={subtitle => this.subtitle = subtitle}>Findings Report OWTF</h2>
                     <button onClick={this.closeModal}>close</button>
-                    {/*    <div className="btn-group btn-group-sm" role="group">
-                              <button className="btn btn-unranked" type="button" disabled="disabled" >Hosts: {'0'}</button>
-                              <button className="btn btn-unranked" type="button" disabled="disabled" >Ifaces: {'0'}</button>
-                              <button className="btn btn-unranked" type="button" disabled="disabled" >Services: {'0'}</button>
-                              <button className="btn btn-unranked" type="button" disabled="disabled" >Creds: {'0'}</button>
-                              <button className="btn btn-unranked" type="button" disabled="disabled" >Vulns: {'0'}</button>
-                              <button className="btn btn-unranked" type="button" disabled="disabled" >Notes: {'0'}</button>
-                        </div>*/}
                   </div>
                     <div className="row-fluid">
                         <div className="col-md-2 col-md-offset-2">
