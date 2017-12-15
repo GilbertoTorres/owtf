@@ -188,25 +188,25 @@ class ReportExportHandler(APIRequestHandler):
                         .join(PluginOutput) \
                         .filter(and_(PluginOutput.target_id == target_id)).all()
 
-        query = db.session.query(Service)
-        services_obj = query.join(Command, Service.commands) \
-                        .join(PluginOutput) \
-                        .filter(and_(PluginOutput.target_id == target_id)).all()
+        # query = db.session.query(Service)
+        # services_obj = query.join(Command, Service.commands) \
+        #                 .join(PluginOutput) \
+        #                 .filter(and_(PluginOutput.target_id == target_id)).all()
                     
-        query = db.session.query(Vuln)
-        vulns_obj = query.join(Command, Vuln.commands) \
-                        .join(PluginOutput) \
-                        .filter(and_(PluginOutput.target_id == target_id)).all()
+        # query = db.session.query(Vuln)
+        # vulns_obj = query.join(Command, Vuln.commands) \
+        #                 .join(PluginOutput) \
+        #                 .filter(and_(PluginOutput.target_id == target_id)).all()
 
-        query = db.session.query(Cred)
-        creds_obj = query.join(Command, Cred.commands) \
-                        .join(PluginOutput) \
-                        .filter(and_(PluginOutput.target_id == target_id)).all()
+        # query = db.session.query(Cred)
+        # creds_obj = query.join(Command, Cred.commands) \
+        #                 .join(PluginOutput) \
+        #                 .filter(and_(PluginOutput.target_id == target_id)).all()
 
-        query = db.session.query(Note)
-        notes_obj = query.join(Command, Note.commands) \
-                        .join(PluginOutput) \
-                        .filter(and_(PluginOutput.target_id == target_id)).all()
+        # query = db.session.query(Note)
+        # notes_obj = query.join(Command, Note.commands) \
+        #                 .join(PluginOutput) \
+        #                 .filter(and_(PluginOutput.target_id == target_id)).all()
 
         query = db.session.query(Command)
         commands_obj = query \
@@ -214,18 +214,18 @@ class ReportExportHandler(APIRequestHandler):
                     .filter(and_(PluginOutput.target_id == target_id, Command.normalized == True)).all()
 
         hosts_arr = [obj.to_dict_full() for obj in hosts_obj]
-        services_arr = [obj.to_dict_full() for obj in services_obj]
-        vulns_arr = [obj.to_dict_full() for obj in vulns_obj]
-        creds_arr = [obj.to_dict_full() for obj in creds_obj]
-        notes_arr = [obj.to_dict() for obj in notes_obj]
+        # services_arr = [obj.to_dict_full() for obj in services_obj]
+        # vulns_arr = [obj.to_dict_full() for obj in vulns_obj]
+        # creds_arr = [obj.to_dict_full() for obj in creds_obj]
+        # notes_arr = [obj.to_dict() for obj in notes_obj]
         commands_arr = [obj.to_dict() for obj in commands_obj]
 
         data = dict(
             hosts=hosts_arr, 
-            services=services_arr, 
-            vulns=vulns_arr, 
-            creds=creds_arr, 
-            notes=notes_arr, 
+            # services=services_arr, 
+            # vulns=vulns_arr, 
+            # creds=creds_arr, 
+            # notes=notes_arr, 
             commands=commands_arr
         )
         result["report"]["data"] = data

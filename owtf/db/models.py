@@ -578,7 +578,8 @@ class Service(Base):
             ports=self.parsed_ports(),
             version=self.version,
             status=self.status,
-            vulns=[vuln.to_dict_full() for vuln in self.vulns]
+            vulns=[vuln.to_dict_full() for vuln in self.vulns],
+            creds=[cred.to_dict_full() for cred in self.creds]
             )
 
 class Cred(Base):
