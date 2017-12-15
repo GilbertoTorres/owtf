@@ -74,7 +74,7 @@ export class VulnerabilityCountPieChart extends React.PureComponent {
         fetch(apiUrl)
           .then((response) => response.json())
           .then((data) => {
-            var severities = data.severities;
+            var severities = data;
             var pieData;
             if ((severities.passing + 
                     severities.info + 
@@ -169,7 +169,7 @@ export class HostsEnhancementTable extends React.PureComponent {
         fetch(apiUrl)
           .then((response) => response.json())
           .then((data) => {
-            this.setState({dataSource: data.objs});
+            this.setState({dataSource: data});
           })
 
     }
@@ -182,9 +182,6 @@ export class HostsEnhancementTable extends React.PureComponent {
       }, {
         Header: 'OS',
         accessor: 'os'
-      }, {
-        Header: 'Count', // Custom header components!
-        accessor: 'count'
       }]
 
       return (
@@ -223,7 +220,7 @@ export class ServicesEnhancementTable extends React.PureComponent {
         fetch(apiUrl)
           .then((response) => response.json())
           .then((data) => {
-            this.setState({dataSource: data.objs});
+            this.setState({dataSource: data});
           })
 
     }
@@ -284,7 +281,7 @@ export class VulnsEnhancementTable extends React.PureComponent {
         fetch(apiUrl)
           .then((response) => response.json())
           .then((data) => {
-            this.setState({dataSource: data.objs});
+            this.setState({dataSource: data});
           })
 
     }
@@ -299,8 +296,10 @@ export class VulnsEnhancementTable extends React.PureComponent {
         accessor: 'severity',
         Cell: props => <span className='number'>{props.value}</span> // Custom cell components!
       }, {
-        Header: 'Count', // Custom header components!
-        accessor: 'count'
+        id: 'service',
+        Header: 'Service',
+        accessor: (obj) => { return "" + obj.service + "/" + obj.host },
+        Cell: props => <span className='number'>{props.value}</span> // Custom cell components!
       }]
 
       return (
@@ -339,7 +338,12 @@ export class CredsEnhancementTable extends React.PureComponent {
         fetch(apiUrl)
           .then((response) => response.json())
           .then((data) => {
-            this.setState({dataSource: data.objs});
+            for (var i = data.length - 1; i >= 0; i--) {
+              if (!data[i].username) {
+                data[i].username = "(empty)";
+              }
+            }
+            this.setState({dataSource: data});
           })
 
     }
@@ -352,6 +356,11 @@ export class CredsEnhancementTable extends React.PureComponent {
       }, {
         Header: 'Password',
         accessor: 'password',
+        Cell: props => <span className='number'>{props.value}</span> // Custom cell components!
+      },{
+        id: 'service',
+        Header: 'Service',
+        accessor: (obj) => { return "" + obj.service + "/" + obj.host },
         Cell: props => <span className='number'>{props.value}</span> // Custom cell components!
       }]
 
@@ -386,13 +395,13 @@ export class NotesEnhancementTable extends React.PureComponent {
 
     componentDidMount() {
         
-        // var apiUrl = tableApiUrlFor(this.props.objId, this.props.objType, "notes")
+        var apiUrl = tableApiUrlFor(this.props.objId, this.props.objType, "notes")
 
-        // fetch('/api/report/commands/12/table/vulns')
-        //   .then((response) => response.json())
-        //   .then((data) => {
-        //     this.setState({dataSource: data.objs});
-        //   })
+        fetch(apiUrl)
+          .then((response) => response.json())
+          .then((data) => {
+            this.setState({dataSource: data});
+          })
     }
 
     render() {
@@ -400,12 +409,15 @@ export class NotesEnhancementTable extends React.PureComponent {
         Header: 'Name',
         accessor: 'name' // String-based value accessors!
       }, {
-        Header: 'Severity',
-        accessor: 'severity',
-        Cell: props => <span className='number'>{props.value}</span> // Custom cell components!
+        Header: 'Text',
+        accessor: 'text'
       }, {
-        Header: 'Count', // Custom header components!
-        accessor: 'count'
+        Header: 'Reference Name',
+        accessor: 'object'
+      }, {
+        id: 'reference',
+        Header: 'Reference',
+        accessor: (obj) => { return "" + obj.object_type + "#" + obj.object_id }
       }]
 
       return (
@@ -490,7 +502,7 @@ export class CommandsEnhancementTable extends React.PureComponent {
         fetch(apiUrl)
           .then((response) => response.json())
           .then((data) => {
-            this.setState({dataSource: data.objs});
+            this.setState({dataSource: data});
           })
     }
 

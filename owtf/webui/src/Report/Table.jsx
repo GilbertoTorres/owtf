@@ -218,7 +218,6 @@ class Table extends React.PureComponent {
                                         </th>
                                     </tr>
                                 )
-                                
                             }
                         })()}
                         {commands.map((cmd, i) => {

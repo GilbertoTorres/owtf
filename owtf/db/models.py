@@ -207,7 +207,7 @@ cmd_vuln = Table('command_register_vuln', Base.metadata,
 
 cmd_note = Table('command_register_note', Base.metadata,
     Column('command_register_id', Integer, ForeignKey('command_register.id')),
-    Column('note_id', Integer, ForeignKey('event.id'))
+    Column('note_id', Integer, ForeignKey('notes.id'))
 )
 
 class Command(Base):
@@ -612,6 +612,8 @@ class Cred(Base):
             name=self.name,
             username=self.username,
             password=self.password,
+            service=self.service.name,
+            host=self.service.iface.host.name
             )
 
     def to_dict_full(self):
@@ -660,6 +662,8 @@ class Vuln(Base):
         return dict(
             name=self.name,
             severity=self.severity,
+            host=self.service.iface.host.name,
+            service=self.service.name,
             )
 
     def to_dict_full(self):
@@ -684,7 +688,7 @@ class VulnWeb(Vuln):
 
 
 class Note(Base):
-    __tablename__ = 'event'
+    __tablename__ = 'notes'
 
     def __str__(self):
         _id = '(none)'
@@ -716,4 +720,7 @@ class Note(Base):
             name=self.name,
             description=self.description,
             text=self.text,
+            object=self.object.name,
+            object_id=self.object_id,
+            object_type=self.object_type,
             )

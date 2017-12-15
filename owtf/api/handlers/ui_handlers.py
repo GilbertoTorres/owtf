@@ -134,10 +134,10 @@ class PluginOutput(UIRequestHandler):
             # Group the plugin outputs to make it easier in template
             grouped_plugin_outputs = {}
             for poutput in plugin_outputs:
-                if grouped_plugin_outputs.get(poutput['plugin_code']) is None:
+                if grouped_plugin_outputs.get(poutput['plugin']['code']) is None:
                     # No problem of overwriting
-                    grouped_plugin_outputs[poutput['plugin_code']] = []
-                grouped_plugin_outputs[poutput['plugin_code']].append(poutput)
+                    grouped_plugin_outputs[poutput['plugin']['code']] = []
+                grouped_plugin_outputs[poutput['plugin']['code']].append(poutput)
             # Needed ordered list for ease in templates
             grouped_plugin_outputs = collections.OrderedDict(sorted(grouped_plugin_outputs.items()))
 
